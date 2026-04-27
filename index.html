@@ -224,6 +224,41 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .prep-q .q-num{color:var(--acc);font-weight:600;margin-right:6px}
 .prep-answer{font-size:11px;color:var(--t2);line-height:1.6;margin-top:4px;padding-left:20px}
 .cal-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(79,142,247,.12);color:#4f8ef7;margin-top:5px}
+
+/* Discover tab */
+.disc-view{padding:20px;overflow-y:auto;flex:1}
+.disc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.disc-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.disc-controls select{background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 10px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace}
+.scan-btn{padding:8px 20px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:6px}
+.scan-btn:hover{background:var(--acc2)}
+.scan-btn:disabled{opacity:.5;cursor:not-allowed}
+.disc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.disc-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;transition:.12s;position:relative}
+.disc-card:hover{border-color:var(--bd2)}
+.disc-card.fresh{border-left:3px solid var(--acc)}
+.disc-co{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:2px;padding-right:44px}
+.disc-role{font-size:12px;color:var(--t2);margin-bottom:6px}
+.disc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.disc-salary{font-size:11px;color:var(--acc)}
+.disc-loc{font-size:11px;color:var(--t3)}
+.disc-why{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:10px}
+.disc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.disc-add{padding:5px 12px;background:var(--acc);color:#000;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:.12s}
+.disc-add:hover{background:var(--acc2)}
+.disc-add.added{background:var(--s3);color:var(--t2);cursor:default;border:1px solid var(--bd2)}
+.disc-link{padding:5px 10px;background:none;border:1px solid var(--bd2);color:var(--t2);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:.12s;text-decoration:none;display:inline-flex;align-items:center}
+.disc-link:hover{border-color:var(--acc);color:var(--acc)}
+.fit-ring{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;position:absolute;top:14px;right:14px}
+.last-scan{font-size:10px;color:var(--t3);margin-bottom:12px}
+.disc-empty{text-align:center;padding:60px 20px;color:var(--t3)}
+.disc-tabs{display:flex;gap:6px;margin-bottom:14px}
+.disc-tab{padding:5px 14px;border-radius:20px;border:1px solid var(--bd2);background:none;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:.12s}
+.disc-tab.on{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600}
+.sponsor-ok{background:rgba(34,197,94,.12);color:#4ade80}
+.sponsor-no{background:rgba(239,69,69,.08);color:#f87171}
+.sponsor-unk{background:rgba(100,100,100,.1);color:var(--t3)}
+
 .ld{color:var(--t2);font-size:12px;display:flex;align-items:center;gap:6px;padding:6px 0}
 .ld::before{content:'';width:12px;height:12px;border:2px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -247,6 +282,7 @@ a{color:var(--acc);text-decoration:none}
   <button class="nb on" id="n-uk" onclick="showBoard('uk')"><span class="flag">🇬🇧</span>UK Board</button>
   <button class="nb" id="n-dubai" onclick="showBoard('dubai')"><span class="flag">🇦🇪</span>Dubai Board</button>
   <div class="nav-sep"></div>
+  <button class="nb" id="n-discover" onclick="showView('discover')">⚡ Discover</button>
   <button class="nb" id="n-cv" onclick="showView('cv')">✦ CV Studio</button>
   <button class="nb" id="n-search" onclick="showView('search')">⌕ Search</button>
   <button class="nb" id="n-connections" onclick="showView('connections')">◈ Connections</button>
@@ -449,6 +485,53 @@ a{color:var(--acc);text-decoration:none}
       </select>
     </div>
     <div class="conn-grid" id="conn-grid"></div>
+  </div>
+</div>
+
+
+<!-- Discover Tab -->
+<div class="view" id="view-discover">
+  <div class="disc-view">
+    <div class="disc-header">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">⚡ Discover Roles</div>
+    </div>
+    <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.7">
+      AI-powered role discovery. Each scan searches for live Enterprise/Mid-Market AE roles matching your profile across both markets, scores them for fit, checks sponsor status, and lets you add them to your pipeline in one click.<br>
+      <span style="color:var(--t3)">Cost: ~$0.01 per scan · $5 credit = ~500 scans</span>
+    </p>
+    <div class="disc-controls">
+      <select id="disc-market">
+        <option value="both">🌍 Both markets</option>
+        <option value="uk">🇬🇧 UK only</option>
+        <option value="dubai">🇦🇪 Dubai only</option>
+      </select>
+      <select id="disc-type">
+        <option value="ae">Enterprise / Mid-Market AE</option>
+        <option value="bd">BD Manager / Commercial</option>
+        <option value="sales">Sales Director / Head of Sales</option>
+        <option value="csm">Customer Success / AM</option>
+        <option value="all">All sales roles</option>
+      </select>
+      <select id="disc-sector">
+        <option value="saas">B2B SaaS</option>
+        <option value="fintech">Fintech</option>
+        <option value="mobility">Mobility / Transport</option>
+        <option value="ai">AI / ML</option>
+        <option value="any">Any sector</option>
+      </select>
+      <button class="scan-btn" id="scan-btn" onclick="runDiscover()">
+        <span id="scan-btn-icon">⚡</span> Scan for roles
+      </button>
+      <span id="last-scan-label" class="last-scan" style="margin-bottom:0"></span>
+    </div>
+    <div class="disc-tabs">
+      <button class="disc-tab on" id="dt-all" onclick="filterDisc('all',this)">All</button>
+      <button class="disc-tab" id="dt-uk" onclick="filterDisc('uk',this)">🇬🇧 UK</button>
+      <button class="disc-tab" id="dt-dubai" onclick="filterDisc('dubai',this)">🇦🇪 Dubai</button>
+      <button class="disc-tab" id="dt-new" onclick="filterDisc('new',this)">✨ New</button>
+      <button class="disc-tab" id="dt-high" onclick="filterDisc('high',this)">🔥 High fit (8+)</button>
+    </div>
+    <div id="disc-grid" class="disc-grid"></div>
   </div>
 </div>
 
@@ -722,6 +805,7 @@ function init(){
   renderBoards();
   renderInterviews();
   populateCompanySelect();
+  loadDiscover();
   // Populate company select whenever add-interview modal opens
   document.getElementById('add-interview-modal').addEventListener('click',e=>{
     if(e.target===document.getElementById('add-interview-modal'))return;
@@ -1251,6 +1335,7 @@ function showView(v){
   const nb=document.getElementById('n-'+v);if(nb)nb.classList.add('on');
   document.getElementById('cmd-res').style.display='none';
   if(v==="interviews"){renderInterviews();populateCompanySelect();}
+  if(v==="discover"){loadDiscover();}
 }
 
 function filterBoard(f,el){
@@ -1285,6 +1370,199 @@ function jumpTo(id,mkt){showBoard(mkt);setTimeout(()=>openPanel(id,mkt),50);docu
 document.addEventListener('click',e=>{if(!e.target.closest('#cmd-input')&&!e.target.closest('#cmd-res'))document.getElementById('cmd-res').style.display='none';});
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('cmd-input').focus();}});
 document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on');}));
+
+
+// ══════════════════════════════════════════════════════
+// DISCOVER
+// ══════════════════════════════════════════════════════
+let discResults = [];
+let discFilter = 'all';
+
+async function runDiscover() {
+  if (!apiKey) {
+    alert('Add your Anthropic API key in Settings to use Discover.\n\nCost: ~$0.01 per scan — $5 lasts ~500 scans.');
+    showView('settings');
+    return;
+  }
+  const btn = document.getElementById('scan-btn');
+  const icon = document.getElementById('scan-btn-icon');
+  btn.disabled = true;
+  icon.textContent = '⟳';
+  btn.querySelector('span:last-child') && (btn.childNodes[btn.childNodes.length-1].textContent = ' Scanning...');
+
+  const market = document.getElementById('disc-market').value;
+  const roleType = document.getElementById('disc-type').value;
+  const sector = document.getElementById('disc-sector').value;
+
+  const marketDesc = market === 'uk' ? 'London UK' : market === 'dubai' ? 'Dubai UAE' : 'London UK and Dubai UAE';
+  const roleDesc = {ae:'Enterprise AE or Mid-Market Account Executive', bd:'Business Development Manager or Commercial Manager', sales:'Sales Director or Head of Sales MENA/EMEA', csm:'Customer Success Manager or Senior Account Manager', all:'enterprise sales or account executive'}[roleType];
+  const sectorDesc = {saas:'B2B SaaS', fintech:'fintech or financial technology', mobility:'mobility or transport technology', ai:'AI or machine learning', any:'any technology sector'}[sector];
+
+  const prompt = `You are a job search assistant. Find 8-10 realistic ${roleDesc} roles in ${marketDesc} at ${sectorDesc} companies.
+
+The candidate is Amaan Aslam:
+- 3+ years founding BDM at Terrapinn, £1.4M enterprise pipeline (IBM, Microsoft, SAP, Verizon)
+- Co-founded B2B SaaS (Swizio), exited 2024
+- LSE MSc Distinction in AI
+- Dubai Golden Visa holder (right to work UAE, no sponsorship needed)
+- Needs UK Skilled Worker visa sponsorship for UK roles
+- Strong mobility network from running MOVE America
+
+Return ONLY valid JSON, no other text:
+{
+  "roles": [
+    {
+      "company": "Company name",
+      "role": "Exact role title",
+      "market": "uk or dubai",
+      "location": "City",
+      "salary_est": "e.g. £70-90k or AED 40-60K/mo",
+      "sector": "sector",
+      "fit_score": 7,
+      "fit_reason": "One sentence why this fits Amaan specifically",
+      "sponsor": "YES or NO or UNKNOWN",
+      "apply_url": "https://linkedin.com/jobs or company careers page URL",
+      "why_apply": "One compelling reason to apply — specific company insight"
+    }
+  ],
+  "scan_summary": "One sentence summary of what was found"
+}
+
+Rules:
+- Only include REAL companies with plausible live hiring in ${market === 'dubai' ? 'Dubai/DIFC/UAE tech scene' : 'London tech/SaaS scene'}
+- Fit score 1-10 based on Amaan's background match
+- For UK roles: check if company is likely to sponsor (well-funded startups/scale-ups usually do)
+- For Dubai roles: sponsor is always YES (Golden Visa)
+- Mix: some applied-to companies he hasn't found yet, some well-known, some hidden gems
+- Do NOT include: Snyk, Pigment, Anaplan, HiBob, Loctax, Bolt, Sylvera, Watershed, ComplyAdvantage, Harvey AI (already in pipeline)
+- Prioritise fit scores 7+ only`;
+
+  try {
+    const raw = await callClaude(prompt, 2000);
+    const clean = raw.replace(/```json\n?|```\n?/g, '').trim();
+    const data = JSON.parse(clean);
+
+    const now = new Date().toISOString();
+    const newResults = (data.roles || []).map((r, i) => ({
+      ...r,
+      id: 'disc-' + Date.now() + '-' + i,
+      scanned_at: now,
+      added: false,
+      isNew: true
+    }));
+
+    // Merge with existing — keep old results, mark new ones
+    const existingIds = new Set(discResults.map(r => r.company + r.role));
+    newResults.forEach(r => { if (existingIds.has(r.company + r.role)) r.isNew = false; });
+    discResults = [...newResults, ...discResults.filter(r => !newResults.find(n => n.company === r.company && n.role === r.role))].slice(0, 50);
+
+    localStorage.setItem('rs_discover', JSON.stringify(discResults));
+    localStorage.setItem('rs_discover_ts', now);
+
+    document.getElementById('last-scan-label').textContent = 'Last scan: ' + new Date().toLocaleTimeString() + (data.scan_summary ? ' · ' + data.scan_summary : '');
+    renderDiscover();
+  } catch(e) {
+    alert('Scan error: ' + e.message);
+  }
+
+  btn.disabled = false;
+  icon.textContent = '⚡';
+}
+
+function filterDisc(f, el) {
+  discFilter = f;
+  document.querySelectorAll('.disc-tab').forEach(t => t.classList.remove('on'));
+  if (el) el.classList.add('on');
+  renderDiscover();
+}
+
+function renderDiscover() {
+  const grid = document.getElementById('disc-grid');
+  if (!grid) return;
+
+  let filtered = discResults;
+  if (discFilter === 'uk') filtered = discResults.filter(r => r.market === 'uk');
+  else if (discFilter === 'dubai') filtered = discResults.filter(r => r.market === 'dubai');
+  else if (discFilter === 'new') filtered = discResults.filter(r => r.isNew);
+  else if (discFilter === 'high') filtered = discResults.filter(r => r.fit_score >= 8);
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="disc-empty" style="grid-column:1/-1">
+      <div class="disc-empty-icon">⚡</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:8px">No roles found yet</div>
+      <div style="font-size:12px;color:var(--t3);margin-bottom:16px">Hit Scan to discover live roles matched to your profile</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => {
+    const fitColor = r.fit_score >= 8 ? '#22c55e' : r.fit_score >= 6 ? '#f5a623' : '#ef4545';
+    const fitBg = r.fit_score >= 8 ? 'rgba(34,197,94,.12)' : r.fit_score >= 6 ? 'rgba(245,166,35,.1)' : 'rgba(239,69,69,.08)';
+    const spClass = r.market === 'dubai' ? 'sponsor-ok' : r.sponsor === 'YES' ? 'sponsor-ok' : r.sponsor === 'NO' ? 'sponsor-no' : 'sponsor-unk';
+    const spLabel = r.market === 'dubai' ? '✓ Right to work' : r.sponsor === 'YES' ? '✓ Sponsors' : r.sponsor === 'NO' ? '✗ No sponsor' : '? Verify sponsor';
+
+    return `<div class="disc-card${r.isNew ? ' fresh' : ''}" id="card-${r.id}">
+      <div class="fit-ring" style="background:${fitBg};color:${fitColor}">${r.fit_score}</div>
+      <div class="disc-co">${r.company} <span style="font-size:10px;color:${r.market==='dubai'?'#14b8a6':'#4f8ef7'}">${r.market==='dubai'?'🇦🇪':'🇬🇧'}</span></div>
+      <div class="disc-role">${r.role}</div>
+      <div class="disc-meta">
+        ${r.salary_est ? `<span class="disc-salary">${r.salary_est}</span>` : ''}
+        <span class="disc-loc">📍 ${r.location || (r.market==='dubai'?'Dubai':'London')}</span>
+        <span class="badge ${spClass}" style="font-size:10px">${spLabel}</span>
+        ${r.isNew ? '<span style="background:rgba(168,224,99,.15);color:var(--acc);font-size:10px;padding:2px 6px;border-radius:4px">✨ New</span>' : ''}
+      </div>
+      ${r.why_apply ? `<div class="disc-why">"${r.why_apply}"</div>` : ''}
+      ${r.fit_reason ? `<div style="font-size:10px;color:var(--t3);margin-bottom:10px">Why it fits: ${r.fit_reason}</div>` : ''}
+      <div class="disc-actions">
+        <button class="disc-add${r.added?' added':''}" id="add-${r.id}" onclick="addDiscRole('${r.id}')">${r.added ? '✓ Added to pipeline' : '+ Add to pipeline'}</button>
+        ${r.apply_url ? `<a class="disc-link" href="${r.apply_url}" target="_blank">Apply ↗</a>` : ''}
+        <button class="disc-link" onclick="dismissDisc('${r.id}')">Dismiss</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addDiscRole(id) {
+  const r = discResults.find(x => x.id === id);
+  if (!r || r.added) return;
+  roles.push({
+    id: Date.now(),
+    co: r.company,
+    role: r.role,
+    market: r.market || 'uk',
+    status: 'wishlist',
+    date: now(),
+    notes: r.why_apply || '',
+    salary: r.salary_est || ''
+  });
+  r.added = true;
+  save();
+  renderDiscover();
+  renderSidebar();
+  // Flash feedback
+  const btn = document.getElementById('add-' + id);
+  if (btn) { btn.textContent = '✓ Added to pipeline'; btn.classList.add('added'); }
+}
+
+function dismissDisc(id) {
+  discResults = discResults.filter(r => r.id !== id);
+  localStorage.setItem('rs_discover', JSON.stringify(discResults));
+  renderDiscover();
+}
+
+function loadDiscover() {
+  try {
+    const saved = localStorage.getItem('rs_discover');
+    if (saved) discResults = JSON.parse(saved);
+    const ts = localStorage.getItem('rs_discover_ts');
+    if (ts) {
+      const age = Math.floor((Date.now() - new Date(ts)) / 60000);
+      const label = age < 60 ? age + ' min ago' : Math.floor(age/60) + 'h ago';
+      document.getElementById('last-scan-label').textContent = 'Last scan: ' + label;
+    }
+  } catch(e) {}
+  renderDiscover();
+}
 
 // ══════════════════════════════════════════════════════
 // GOOGLE CALENDAR
@@ -1597,6 +1875,84 @@ async function callClaude(prompt,maxTokens=500){
   if(d.error)throw new Error(d.error.message);
   return d.content.find(b=>b.type==='text')?.text||'';
 }
+
+
+// ══════════════════════════════════════════════════════
+// URL-BASED QUICK ADD
+// ══════════════════════════════════════════════════════
+function parseUrlAdd() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#add?')) return;
+  
+  try {
+    const params = new URLSearchParams(hash.replace('#add?', ''));
+    const co = params.get('co');
+    const role = params.get('role');
+    if (!co || !role) return;
+
+    const newRole = {
+      id: Date.now(),
+      co: decodeURIComponent(co),
+      role: decodeURIComponent(role),
+      market: params.get('market') || 'uk',
+      status: params.get('status') || 'wishlist',
+      date: params.get('date') || now(),
+      notes: decodeURIComponent(params.get('notes') || ''),
+      salary: decodeURIComponent(params.get('salary') || '')
+    };
+
+    // Check if already exists
+    const exists = roles.find(r => 
+      r.co.toLowerCase() === newRole.co.toLowerCase() && 
+      r.role.toLowerCase() === newRole.role.toLowerCase()
+    );
+
+    if (exists) {
+      showToast('⚠ ' + newRole.co + ' — ' + newRole.role + ' already in pipeline');
+      // Clear the hash so it doesn't re-trigger
+      history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+
+    roles.push(newRole);
+    save();
+    render();
+    renderSidebar();
+
+    // Show success toast and open the correct board
+    showToast('✅ Added: ' + newRole.co + ' — ' + newRole.role + ' (' + (newRole.market === 'dubai' ? '🇦🇪' : '🇬🇧') + ')');
+    showBoard(newRole.market);
+
+    // Clear hash so refresh doesn't re-add
+    history.replaceState(null, '', window.location.pathname);
+
+  } catch(e) {
+    console.error('URL add error:', e);
+  }
+}
+
+function showToast(msg) {
+  const existing = document.getElementById('rs-toast');
+  if (existing) existing.remove();
+  
+  const toast = document.createElement('div');
+  toast.id = 'rs-toast';
+  toast.style.cssText = `
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--s2);border:1px solid var(--acc);border-radius:8px;
+    padding:12px 20px;font-size:13px;color:var(--t1);
+    box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:999;
+    display:flex;align-items:center;gap:8px;
+    animation:slideUp .2s ease;font-family:'DM Mono',monospace;
+    white-space:nowrap;
+  `;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// Run on load and on hash change
+window.addEventListener('hashchange', parseUrlAdd);
 
 // ══════════════════════════════════════════════════════
 // START
