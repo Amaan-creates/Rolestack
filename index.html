@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rolestack — Job Search Command Centre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080a;--s1:#101014;--s2:#18181e;--s3:#222228;--bd:#2a2a32;--bd2:#38383f;
+  --t1:#eeeef2;--t2:#9999aa;--t3:#55556a;--acc:#a8e063;--acc2:#7ab832;
+  --blue:#4f8ef7;--yellow:#f5a623;--red:#ef4545;--green:#22c55e;--purple:#a855f7;
+  --teal:#14b8a6;--r:8px;--r2:6px;
+}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;font-size:13px}
+/* ── Scrollbars ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+/* ── Layout ── */
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:50px;background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;gap:6px;flex-shrink:0;z-index:50}
+.logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--acc);letter-spacing:-0.5px;margin-right:6px}
+.logo-sub{font-size:10px;color:var(--t3);font-weight:400;margin-top:2px}
+.nav-sep{width:1px;height:20px;background:var(--bd);margin:0 4px}
+.nb{padding:5px 13px;border-radius:var(--r2);border:none;background:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.nb:hover{background:var(--s3);color:var(--t1)}
+.nb.on{background:var(--s3);color:var(--t1)}
+.nb .flag{font-size:14px}
+.spacer{flex:1}
+.api-dot{width:7px;height:7px;border-radius:50%;background:var(--red);cursor:pointer;transition:.3s;flex-shrink:0}
+.api-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.addbtn{padding:6px 14px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:.15s}
+.addbtn:hover{background:var(--acc2)}
+.main{display:flex;flex:1;overflow:hidden}
+/* ── Sidebar ── */
+.sidebar{width:190px;background:var(--s1);border-right:1px solid var(--bd);padding:14px 8px;flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.sl{font-size:9px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px;margin-bottom:5px}
+.si{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:var(--r2);cursor:pointer;color:var(--t2);transition:.1s}
+.si:hover,.si.on{background:var(--s3);color:var(--t1)}
+.si-l{display:flex;align-items:center;gap:7px;font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cnt{background:var(--s3);color:var(--t2);border-radius:8px;padding:1px 7px;font-size:10px}
+.cnt.hot{background:rgba(245,166,35,.15);color:var(--yellow)}
+.stat-box{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px}
+.stat-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}
+.stat-row span:first-child{color:var(--t2)}
+/* ── Content ── */
+.content{flex:1;overflow:hidden;display:flex;position:relative}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden}
+.view.on{display:flex}
+/* ── Market tabs ── */
+.market-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--s1);padding:0 20px}
+.mtab{padding:10px 18px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;display:flex;align-items:center;gap:6px}
+.mtab:hover{color:var(--t1)}
+.mtab.on{color:var(--acc);border-bottom-color:var(--acc)}
+/* ── Board ── */
+.board-head{padding:14px 20px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.board-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.board-scroll{overflow-x:auto;flex:1;padding:0 14px 14px}
+.board-cols{display:flex;gap:10px;height:100%;min-width:max-content}
+.col{width:215px;flex-shrink:0;display:flex;flex-direction:column}
+.col-h{display:flex;align-items:center;justify-content:space-between;padding:6px 2px;margin-bottom:7px}
+.col-n{font-size:11px;font-weight:500}
+.col-c{background:var(--s3);color:var(--t2);border-radius:8px;padding:1px 7px;font-size:10px}
+.col-body{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.jcard{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:.12s}
+.jcard:hover{border-color:var(--bd2)}
+.jcard.sel{border-color:var(--acc)}
+.jcard.stale7{border-left:3px solid var(--yellow)}
+.jcard.stale14{border-left:3px solid var(--red)}
+.jco{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:1px}
+.jro{font-size:11px;color:var(--t2);margin-bottom:6px}
+.jft{display:flex;align-items:center;justify-content:space-between}
+.jdt{font-size:10px;color:var(--t3)}
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500}
+.jnotes{font-size:10px;color:var(--t3);margin-top:5px;line-height:1.5}
+.stale-flag{font-size:9px;color:var(--yellow);margin-top:4px;display:flex;align-items:center;gap:3px}
+/* ── Right panel ── */
+.rpanel{width:0;background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:.2s;flex-shrink:0}
+.rpanel.on{width:330px}
+.rph{padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.rpt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.rpb{flex:1;overflow-y:auto;padding:12px 14px}
+.fl{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-top:12px;margin-bottom:4px}
+.fv{font-size:12px;color:var(--t2);line-height:1.6}
+.stage-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.sp{padding:4px 8px;border-radius:4px;border:1px solid var(--bd2);background:none;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:.1s}
+.sp:hover,.sp.on{border-color:var(--acc);color:var(--acc);background:rgba(168,224,99,.06)}
+.aibtn{width:100%;padding:8px;border-radius:var(--r2);background:rgba(168,224,99,.07);border:1px solid rgba(168,224,99,.2);color:var(--acc);font-size:12px;cursor:pointer;margin-top:10px;font-family:'DM Mono',monospace;transition:.15s}
+.aibtn:hover{background:rgba(168,224,99,.14)}
+.ai-out{background:var(--bg);border-radius:var(--r2);padding:10px;margin-top:6px;font-size:12px;line-height:1.7;color:var(--t2);white-space:pre-wrap;max-height:200px;overflow-y:auto;border:1px solid var(--bd)}
+.cpbtn{font-size:10px;padding:3px 8px;background:var(--s3);border:none;color:var(--t2);border-radius:3px;cursor:pointer;margin-top:5px;font-family:'DM Mono',monospace}
+.cpbtn:hover{color:var(--t1)}
+.panel-actions{margin-top:12px;padding-top:10px;border-top:1px solid var(--bd);display:flex;gap:6px;flex-wrap:wrap}
+.btn-sm{padding:5px 10px;border-radius:4px;border:1px solid var(--bd2);background:none;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:.1s}
+.btn-sm:hover{border-color:var(--acc);color:var(--acc)}
+.btn-sm.dng:hover{border-color:var(--red);color:var(--red)}
+/* ── Sequence tracker in panel ── */
+.seq-step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)}
+.seq-step:last-child{border-bottom:none}
+.seq-num{width:20px;height:20px;border-radius:50%;border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t2);flex-shrink:0}
+.seq-num.done{background:var(--acc);border-color:var(--acc);color:#000}
+.seq-label{font-size:11px;color:var(--t2);flex:1}
+.seq-day{font-size:10px;color:var(--t3)}
+/* ── CV Studio ── */
+.cv-studio{display:flex;gap:0;flex:1;overflow:hidden}
+.cv-left{width:380px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s1)}
+.cv-right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cv-section{padding:14px 16px;border-bottom:1px solid var(--bd)}
+.cv-label{font-size:10px;color:var(--t2);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;font-weight:500}
+.cv-ta{width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:9px 10px;color:var(--t1);font-size:12px;line-height:1.6;resize:none;outline:none;font-family:'DM Mono',monospace}
+.cv-ta:focus{border-color:var(--acc)}
+.fmt-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fmt-sel{background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:5px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace;cursor:pointer}
+.fmt-sel:focus{border-color:var(--acc)}
+.genbtn{padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:.15s}
+.genbtn:hover{background:var(--acc2)}
+.genbtn:disabled{opacity:.4;cursor:not-allowed}
+.dl-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--bd);flex-shrink:0;background:var(--s1)}
+.dlbtn{flex:1;padding:9px;border-radius:var(--r2);border:1px solid var(--bd2);background:none;color:var(--t1);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.dlbtn:hover{border-color:var(--acc);color:var(--acc)}
+.dlbtn.primary{background:var(--acc);color:#000;border-color:var(--acc)}
+.dlbtn.primary:hover{background:var(--acc2)}
+.cv-preview-wrap{flex:1;overflow-y:auto;padding:24px;background:#f5f5f5;display:flex;justify-content:center}
+.cv-preview{background:#fff;width:750px;min-height:980px;padding:48px 56px;box-shadow:0 4px 24px rgba(0,0,0,.15);font-family:Arial,sans-serif;font-size:11pt;line-height:1.5;color:#111;position:relative}
+.cv-preview h1{font-size:22pt;font-weight:700;margin-bottom:2px;color:#111}
+.cv-preview .contact-line{font-size:9pt;color:#555;margin-bottom:16px}
+.cv-preview .section-head{font-size:11pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1.5px solid #111;padding-bottom:3px;margin:14px 0 8px}
+.cv-preview .job-title{font-weight:700;font-size:11pt}
+.cv-preview .job-meta{font-size:9.5pt;color:#555;margin-bottom:4px}
+.cv-preview ul{padding-left:18px;margin:0}
+.cv-preview ul li{margin-bottom:3px;font-size:10.5pt}
+.cv-preview .skills-grid{display:flex;flex-wrap:wrap;gap:4px 12px}
+.cv-preview .skill-item{font-size:10pt}
+.ats-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-size:11px}
+.ats-score{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.ats-track{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.ats-fill{height:100%;border-radius:3px;background:var(--acc);transition:.5s}
+.kw-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;margin:2px;background:rgba(168,224,99,.12);color:var(--acc);border:1px solid rgba(168,224,99,.2)}
+.kw-chip.miss{background:rgba(239,69,69,.08);color:var(--red);border-color:rgba(239,69,69,.2)}
+/* ── Search ── */
+.search-view{padding:18px;overflow-y:auto}
+.search-bar{display:flex;gap:8px;margin-bottom:14px}
+.search-bar input{flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);padding:9px 13px;color:var(--t1);font-size:13px;outline:none;font-family:'DM Mono',monospace}
+.search-bar input:focus{border-color:var(--acc)}
+.boards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.bcard{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 13px;cursor:pointer;transition:.12s}
+.bcard:hover{border-color:var(--acc)}
+.bcard-icon{font-size:18px;margin-bottom:5px}
+.bcard-name{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;margin-bottom:1px}
+.bcard-desc{font-size:10px;color:var(--t2)}
+/* ── Connections ── */
+.conn-view{padding:18px;overflow-y:auto;flex:1}
+.conn-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.conn-filters{display:flex;gap:8px;margin-bottom:12px}
+.conn-filters input,.conn-filters select{background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:6px 10px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace}
+.conn-filters input{width:180px}
+.conn-filters input:focus{border-color:var(--acc)}
+.conn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:8px}
+.ccard{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;transition:.12s}
+.ccard:hover{border-color:var(--bd2)}
+.cname{font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
+.ctitle{font-size:11px;color:var(--t2);margin-bottom:5px}
+.cnote{font-size:11px;color:var(--t3);line-height:1.4;margin-top:5px}
+.cft{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.seq-mini{display:flex;gap:3px;margin-top:7px}
+.seq-dot{width:20px;height:6px;border-radius:3px;background:var(--s3);cursor:pointer;transition:.12s}
+.seq-dot.done{background:var(--acc)}
+.seq-dot:hover{background:var(--bd2)}
+/* ── Settings ── */
+.settings-view{padding:24px;overflow-y:auto;flex:1;max-width:560px}
+.settings-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:18px}
+.settings-section{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.settings-section h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:3px}
+.settings-section p{font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6}
+.settings-section input,.settings-section textarea{width:100%;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:8px 11px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace}
+.settings-section input:focus,.settings-section textarea:focus{border-color:var(--acc)}
+.settings-section textarea{height:130px;resize:none;line-height:1.6;margin-bottom:0}
+.savebtn{margin-top:9px;padding:7px 15px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer}
+.savebtn:hover{background:var(--acc2)}
+/* ── Modals ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--s2);border:1px solid var(--bd2);border-radius:12px;padding:22px;width:420px;animation:slideUp .18s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:15px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.ff{display:flex;flex-direction:column;gap:3px}
+.ff label{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px}
+.ff input,.ff select,.ff textarea{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--acc)}
+.ff textarea{height:68px;resize:none}
+.ff.full{grid-column:1/-1}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+.ghost-btn{padding:7px 14px;background:none;border:1px solid var(--bd2);color:var(--t2);border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer}
+.ghost-btn:hover{border-color:var(--acc);color:var(--acc)}
+/* ── Cmd+K ── */
+#cmd-res{display:none;position:fixed;top:54px;right:62px;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);width:300px;max-height:260px;overflow-y:auto;z-index:300;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.cmd-item{padding:9px 13px;border-bottom:1px solid var(--bd);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:.1s}
+.cmd-item:hover{background:var(--s3)}
+.cmd-item:last-child{border-bottom:none}
+.cmd-co{font-family:'Syne',sans-serif;font-weight:600;font-size:12px}
+.cmd-role{font-size:11px;color:var(--t2)}
+/* ── Interviews ── */
+.int-view{padding:18px;overflow-y:auto;flex:1}
+.int-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.int-card.today{border-left:3px solid var(--acc)}
+.int-card.soon{border-left:3px solid var(--yellow)}
+.int-left{flex:1}
+.int-company{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:2px}
+.int-title{font-size:12px;color:var(--t2);margin-bottom:4px}
+.int-time{font-size:11px;color:var(--t3)}
+.int-badge{font-size:10px;padding:3px 9px;border-radius:4px;font-weight:500;white-space:nowrap}
+.countdown{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;text-align:right;line-height:1}
+.countdown-label{font-size:9px;color:var(--t2);text-align:right}
+.prep-section{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;margin-top:12px}
+.prep-q{padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--t1)}
+.prep-q:last-child{border-bottom:none}
+.prep-q .q-num{color:var(--acc);font-weight:600;margin-right:6px}
+.prep-answer{font-size:11px;color:var(--t2);line-height:1.6;margin-top:4px;padding-left:20px}
+.cal-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(79,142,247,.12);color:#4f8ef7;margin-top:5px}
+.ld{color:var(--t2);font-size:12px;display:flex;align-items:center;gap:6px;padding:6px 0}
+.ld::before{content:'';width:12px;height:12px;border:2px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+input,select,textarea{font-family:inherit}
+select{background:var(--bg);border:1px solid var(--bd2);border-radius:4px;padding:3px 7px;color:var(--t2);font-size:11px;outline:none;font-family:'DM Mono',monospace;cursor:pointer}
+a{color:var(--acc);text-decoration:none}
+.reminder-banner{background:rgba(245,166,35,.08);border-bottom:1px solid rgba(245,166,35,.2);padding:8px 20px;font-size:11px;color:var(--yellow);display:none;flex-shrink:0;align-items:center;gap:8px}
+.reminder-banner.on{display:flex}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div>
+    <div class="logo">Rolestack</div>
+  <div style="font-size:9px;color:var(--t3);letter-spacing:.5px;margin-left:2px;margin-top:-2px">JOB SEARCH OS</div>
+  </div>
+  <div class="nav-sep"></div>
+  <button class="nb on" id="n-uk" onclick="showBoard('uk')"><span class="flag">🇬🇧</span>UK Board</button>
+  <button class="nb" id="n-dubai" onclick="showBoard('dubai')"><span class="flag">🇦🇪</span>Dubai Board</button>
+  <div class="nav-sep"></div>
+  <button class="nb" id="n-cv" onclick="showView('cv')">✦ CV Studio</button>
+  <button class="nb" id="n-search" onclick="showView('search')">⌕ Search</button>
+  <button class="nb" id="n-connections" onclick="showView('connections')">◈ Connections</button>
+  <button class="nb" id="n-interviews" onclick="showView('interviews')">📅 Interviews</button>
+  <button class="nb" id="n-settings" onclick="showView('settings')">⚙</button>
+  <div class="spacer"></div>
+  <input id="cmd-input" style="background:var(--s2);border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;color:var(--t1);font-size:12px;outline:none;width:145px;font-family:'DM Mono',monospace" placeholder="⌘K search..." oninput="cmdSearch(this.value)" onkeydown="cmdKey(event)">
+  <div class="api-dot" id="api-dot" title="Add API key in Settings" onclick="showView('settings')"></div>
+  <button class="addbtn" onclick="openModal('add-modal')">+ Add Role</button>
+</div>
+
+<div class="main">
+<!-- ── Sidebar ── -->
+<div class="sidebar">
+  <div>
+    <div class="sl">Filter</div>
+    <div class="si on" id="s-all" onclick="filterBoard('all',this)"><div class="si-l"><div class="dot" style="background:var(--t2)"></div>All</div><span class="cnt" id="cnt-all">0</span></div>
+    <div class="si" onclick="filterBoard('applied',this)"><div class="si-l"><div class="dot" style="background:#4f8ef7"></div>Applied</div><span class="cnt" id="cnt-applied">0</span></div>
+    <div class="si" onclick="filterBoard('active',this)"><div class="si-l"><div class="dot" style="background:var(--green)"></div>Active</div><span class="cnt" id="cnt-active">0</span></div>
+    <div class="si" onclick="filterBoard('waiting',this)"><div class="si-l"><div class="dot" style="background:var(--yellow)"></div>Awaiting</div><span class="cnt" id="cnt-waiting">0</span></div>
+    <div class="si" onclick="filterBoard('interview',this)"><div class="si-l"><div class="dot" style="background:var(--purple)"></div>Interviews</div><span class="cnt" id="cnt-interview">0</span></div>
+    <div class="si" onclick="filterBoard('offered',this)"><div class="si-l"><div class="dot" style="background:var(--acc)"></div>Offers</div><span class="cnt" id="cnt-offered">0</span></div>
+  </div>
+  <div>
+    <div class="sl">Follow-ups</div>
+    <div class="si" onclick="filterBoard('stale7',this)"><div class="si-l"><div class="dot" style="background:var(--yellow)"></div>7-day stale</div><span class="cnt hot" id="cnt-stale7">0</span></div>
+    <div class="si" onclick="filterBoard('stale14',this)"><div class="si-l"><div class="dot" style="background:var(--red)"></div>14-day stale</div><span class="cnt hot" id="cnt-stale14">0</span></div>
+  </div>
+  <div>
+    <div class="sl">Stats</div>
+    <div class="stat-box">
+      <div class="stat-row"><span>Total</span><span id="st-total" style="color:var(--t1)">0</span></div>
+      <div class="stat-row"><span>🇬🇧 UK</span><span id="st-uk" style="color:#4f8ef7">0</span></div>
+      <div class="stat-row"><span>🇦🇪 Dubai</span><span id="st-dubai" style="color:var(--teal)">0</span></div>
+      <div class="stat-row"><span>Contacts</span><span id="st-conns" style="color:var(--acc)">0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Content ── -->
+<div class="content">
+
+<!-- ── UK Board ── -->
+<div class="view on" id="view-uk" style="flex-direction:column">
+  <div id="uk-reminder" class="reminder-banner">
+    <span>⏰</span><span id="uk-reminder-text"></span>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;flex-direction:row">
+    <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="board-head">
+        <span class="flag" style="font-size:16px">🇬🇧</span>
+        <div class="board-title">UK Pipeline</div>
+        <div style="font-size:11px;color:var(--t2)" id="uk-filter-label">All roles</div>
+      </div>
+      <div class="board-scroll"><div class="board-cols" id="uk-cols"></div></div>
+    </div>
+    <div class="rpanel" id="rpanel">
+      <div class="rph"><div class="rpt" id="rpt">Details</div><button class="btn-sm" onclick="closePanel()">✕</button></div>
+      <div class="rpb" id="rpb"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Dubai Board ── -->
+<div class="view" id="view-dubai" style="flex-direction:column">
+  <div id="dubai-reminder" class="reminder-banner">
+    <span>⏰</span><span id="dubai-reminder-text"></span>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;flex-direction:row">
+    <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="board-head">
+        <span class="flag" style="font-size:16px">🇦🇪</span>
+        <div class="board-title">Dubai Pipeline</div>
+        <div style="font-size:11px;color:var(--t2)" id="dubai-filter-label">All roles</div>
+      </div>
+      <div class="board-scroll"><div class="board-cols" id="dubai-cols"></div></div>
+    </div>
+    <div class="rpanel" id="rpanel2">
+      <div class="rph"><div class="rpt" id="rpt2">Details</div><button class="btn-sm" onclick="closePanel2()">✕</button></div>
+      <div class="rpb" id="rpb2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CV Studio ── -->
+<div class="view" id="view-cv">
+  <div class="cv-studio">
+    <div class="cv-left">
+      <div class="cv-section">
+        <div class="cv-label">Job Description</div>
+        <textarea class="cv-ta" id="jd-in" rows="6" placeholder="Paste the full job description here..."></textarea>
+      </div>
+      <div class="cv-section">
+        <div class="cv-label">Your CV / Master Profile</div>
+        <textarea class="cv-ta" id="cv-in" rows="5" placeholder="Paste your full CV or career history here...&#10;(Pre-filled from Settings profile if saved)"></textarea>
+      </div>
+      <div class="cv-section">
+        <div class="cv-label">Formatting</div>
+        <div class="fmt-row">
+          <select class="fmt-sel" id="fmt-font" onchange="updatePreviewFont()">
+            <option value="Arial">Arial</option>
+            <option value="Calibri" selected>Calibri</option>
+            <option value="Garamond">Garamond</option>
+            <option value="Georgia">Georgia</option>
+            <option value="'Times New Roman'">Times New Roman</option>
+            <option value="Helvetica">Helvetica</option>
+          </select>
+          <select class="fmt-sel" id="fmt-size" onchange="updatePreviewFont()">
+            <option value="10">10pt</option>
+            <option value="11" selected>11pt</option>
+            <option value="12">12pt</option>
+          </select>
+          <select class="fmt-sel" id="fmt-market">
+            <option value="uk">🇬🇧 UK format</option>
+            <option value="dubai">🇦🇪 Dubai format</option>
+          </select>
+        </div>
+      </div>
+      <div class="cv-section" style="display:flex;gap:8px;align-items:center">
+        <button class="genbtn" onclick="generateCV()" id="gen-btn">Generate ATS CV ↗</button>
+        <button class="genbtn" style="background:none;border:1px solid var(--bd2);color:var(--t1)" onclick="draftCoverLetter()">Cover letter</button>
+        <button class="genbtn" style="background:none;border:1px solid var(--bd2);color:var(--t1)" onclick="draftOutreach()">Outreach msg</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px 16px" id="cv-left-output">
+        <div style="font-size:11px;color:var(--t3);line-height:1.8">
+          ⟵ Paste a JD and your CV, then hit Generate.<br><br>
+          The AI will produce an ATS-optimised CV tailored to the role, with keyword matching and an ATS score. You can then preview it, adjust formatting, and download as DOCX or PDF.
+        </div>
+      </div>
+    </div>
+    <div class="cv-right">
+      <div class="ats-bar" id="ats-bar" style="display:none">
+        <span style="color:var(--t2);font-size:11px">ATS Score</span>
+        <span class="ats-score" id="ats-score">—</span>
+        <div class="ats-track"><div class="ats-fill" id="ats-fill" style="width:0%"></div></div>
+        <div id="kw-matched" style="font-size:10px;color:var(--t2)"></div>
+      </div>
+      <div style="flex-shrink:0;padding:6px 16px;background:var(--s1);border-bottom:1px solid var(--bd);font-size:10px;color:var(--t2)" id="kw-row" style="display:none"></div>
+      <div class="cv-preview-wrap" id="cv-preview-wrap">
+        <div style="color:var(--t3);font-size:13px;text-align:center;margin-top:80px">
+          <div style="font-size:32px;margin-bottom:12px">📄</div>
+          Your formatted CV will appear here<br>
+          <span style="font-size:11px">Generate above to preview, then download as DOCX or PDF</span>
+        </div>
+      </div>
+      <div class="dl-row">
+        <button class="dlbtn primary" onclick="downloadDOCX()" id="dl-docx" disabled>⬇ Download DOCX</button>
+        <button class="dlbtn" onclick="downloadPDF()" id="dl-pdf" disabled>⬇ Download PDF</button>
+        <button class="dlbtn" onclick="copyCV()" id="dl-copy" disabled>⎘ Copy text</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Search ── -->
+<div class="view" id="view-search">
+  <div class="market-tabs">
+    <div class="mtab on" id="st-uk" onclick="switchSearchMkt('uk',this)"><span>🇬🇧</span>UK Boards</div>
+    <div class="mtab" id="st-dubai" onclick="switchSearchMkt('dubai',this)"><span>🇦🇪</span>Dubai Boards</div>
+  </div>
+  <div class="search-view">
+    <div class="search-bar">
+      <input id="sq" value="Enterprise Account Executive" placeholder="Search query...">
+      <select id="sq-loc" style="background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;font-family:'DM Mono',monospace">
+        <option value="London">London</option>
+        <option value="Dubai">Dubai</option>
+        <option value="Remote">Remote</option>
+      </select>
+      <button class="addbtn" onclick="openAllBoards()">Open all ↗</button>
+    </div>
+    <div style="font-size:11px;color:var(--t2);margin-bottom:12px">Click any board to search. Opens in a new tab.</div>
+    <div class="boards-grid" id="boards-grid"></div>
+    <div style="border-top:1px solid var(--bd);padding-top:16px;margin-top:4px">
+      <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px">Role fit scorer — paste any JD</div>
+      <div style="display:flex;gap:8px">
+        <textarea id="fit-jd" style="flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace;height:80px;resize:none" placeholder="Paste a JD here to get an AI fit score against your profile..."></textarea>
+        <button class="addbtn" style="align-self:flex-start;margin-top:0" onclick="scoreFit()">Score fit ↗</button>
+      </div>
+      <div id="fit-result" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Connections ── -->
+<div class="view" id="view-connections">
+  <div class="conn-view">
+    <div class="conn-head">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Connections CRM</div>
+      <button class="addbtn" onclick="openModal('conn-modal')">+ Add</button>
+    </div>
+    <div style="font-size:11px;color:var(--t2);margin-bottom:10px">Track your LinkedIn outreach with a 5-step engagement sequence. Click the dots to advance each step.</div>
+    <div class="conn-filters">
+      <input id="conn-q" placeholder="Search..." oninput="renderConns()">
+      <select id="conn-sf" onchange="renderConns()">
+        <option value="">All</option>
+        <option value="pending">Sent</option>
+        <option value="connected">Connected</option>
+        <option value="replied">Replied</option>
+        <option value="met">Met</option>
+      </select>
+    </div>
+    <div class="conn-grid" id="conn-grid"></div>
+  </div>
+</div>
+
+<!-- ── Interviews ── -->
+<div class="view" id="view-interviews">
+  <div class="int-view">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">Upcoming Interviews</div>
+      <div style="display:flex;gap:8px">
+        <button class="addbtn" style="background:none;border:1px solid var(--bd2);color:var(--t1)" onclick="showView('settings')">⚙ Setup Calendar</button>
+        <button class="addbtn" onclick="openModal('add-interview-modal')">+ Add manually</button>
+      </div>
+    </div>
+    <div id="cal-sync-notice" style="background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--t2);line-height:1.7">
+      📅 <strong style="color:var(--t1)">Connect Google Calendar</strong> in Settings to automatically pull interviews.<br>
+      Events with keywords like "interview", "screen", "technical call", "recruiter" will appear here and auto-update your Kanban stage.
+    </div>
+    <div id="interviews-list"></div>
+  </div>
+</div>
+
+<!-- ── Add Interview Modal ── -->
+<div class="overlay" id="add-interview-modal">
+  <div class="modal">
+    <div class="modal-title">Add interview manually</div>
+    <div class="form-grid">
+      <div class="ff full"><label>Company</label>
+        <select id="int-company-sel" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+          <option value="">Select company...</option>
+        </select>
+      </div>
+      <div class="ff"><label>Date</label><input id="int-date" type="date"></div>
+      <div class="ff"><label>Time</label><input id="int-time" type="time" value="10:00"></div>
+      <div class="ff full"><label>Interview type</label>
+        <select id="int-type" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+          <option value="recruiter">Recruiter screen</option>
+          <option value="hiring">Hiring manager</option>
+          <option value="technical">Technical / case</option>
+          <option value="panel">Panel interview</option>
+          <option value="final">Final / offer stage</option>
+        </select>
+      </div>
+      <div class="ff full"><label>Video link (optional)</label><input id="int-link" placeholder="https://meet.google.com/..."></div>
+      <div class="ff full"><label>Notes</label><textarea id="int-notes" placeholder="Who you're meeting, what to prep..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="addbtn" onclick="addInterview()">Add interview</button>
+      <button class="ghost-btn" onclick="closeModal('add-interview-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Settings ── -->
+<div class="view" id="view-settings">
+  <div class="settings-view">
+    <div class="settings-title">Settings</div>
+    <div class="settings-section">
+      <h3>Anthropic API Key</h3>
+      <p>Required for CV tailoring, cover letters, outreach messages, interview prep and role scoring. Get your key free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Stored locally in your browser only.</p>
+      <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+      <button class="savebtn" onclick="saveApiKey()">Save key</button>
+      <div id="api-status" style="margin-top:6px;font-size:11px;color:var(--t2)"></div>
+    </div>
+    <div class="settings-section">
+      <h3>Your profile</h3>
+      <p>Used by AI for all tailoring. The more detail you add, the better the output.</p>
+      <textarea id="profile-input"></textarea>
+      <button class="savebtn" onclick="saveProfile()">Save profile</button>
+    </div>
+    <div class="settings-section">
+      <h3>Google Calendar Sync</h3>
+      <p>Automatically detect interviews from your Google Calendar and sync them to your pipeline. You need a Google OAuth Client ID — follow these steps:<br><br>
+      1. Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a><br>
+      2. Create a project → Enable <strong>Google Calendar API</strong><br>
+      3. Create credentials → OAuth 2.0 → Web Application<br>
+      4. Add your site URL to <strong>Authorised JavaScript Origins</strong><br>
+      5. Copy the Client ID below</p>
+      <input type="text" id="gcal-client-id" placeholder="XXXXXXXXX.apps.googleusercontent.com" style="margin-bottom:8px">
+      <button class="savebtn" onclick="saveGCalId()">Save Client ID</button>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <button class="savebtn" id="gcal-sync-btn" onclick="connectCalendar()" style="display:none">Connect & Sync Calendar</button>
+        <button class="savebtn" id="gcal-resync-btn" onclick="syncCalendar()" style="display:none;background:var(--s3);border:1px solid var(--bd2);color:var(--t1)">Re-sync now</button>
+        <span id="gcal-status" style="font-size:11px;color:var(--t2)"></span>
+      </div>
+      <div id="gcal-events-preview" style="margin-top:10px"></div>
+    </div>
+    <div class="settings-section">
+      <h3>Data</h3>
+      <p>All data is stored in your browser's localStorage. Export as JSON backup or reset to defaults.</p>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="savebtn" onclick="exportData()">Export JSON</button>
+        <button class="savebtn" style="background:var(--red);color:#fff" onclick="clearData()">Reset all data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Add Role Modal ── -->
+<div class="overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Add role</div>
+    <div class="form-grid">
+      <div class="ff"><label>Company</label><input id="a-co" placeholder="e.g. Salesforce"></div>
+      <div class="ff"><label>Role</label><input id="a-role" placeholder="e.g. Enterprise AE"></div>
+      <div class="ff"><label>Market</label>
+        <select id="a-market"><option value="uk">🇬🇧 UK</option><option value="dubai">🇦🇪 Dubai</option></select>
+      </div>
+      <div class="ff"><label>Status</label>
+        <select id="a-status">
+          <option value="wishlist">Wishlist</option><option value="applied" selected>Applied</option>
+          <option value="active">Active</option><option value="waiting">Awaiting reply</option>
+          <option value="building">Building</option><option value="interview">Interviewing</option>
+          <option value="offered">Offered</option><option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="ff"><label>Date (YYYY-MM-DD)</label><input id="a-date" placeholder="2026-04-27"></div>
+      <div class="ff"><label>Salary / AED or £</label><input id="a-salary" placeholder="e.g. £80k or AED 50K"></div>
+      <div class="ff full"><label>Notes</label><textarea id="a-notes" placeholder="Key contacts, next steps..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="addbtn" onclick="addRole()">Add to pipeline</button>
+      <button class="ghost-btn" onclick="closeModal('add-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Connection Modal ── -->
+<div class="overlay" id="conn-modal">
+  <div class="modal">
+    <div class="modal-title">Add connection</div>
+    <div class="form-grid">
+      <div class="ff"><label>Name</label><input id="c-name" placeholder="Sarah Johnson"></div>
+      <div class="ff"><label>Company</label><input id="c-co" placeholder="Pigment"></div>
+      <div class="ff"><label>Title</label><input id="c-title" placeholder="Talent Partner"></div>
+      <div class="ff"><label>Status</label>
+        <select id="c-status"><option value="pending">Request sent</option><option value="connected">Connected</option><option value="replied">Replied</option><option value="met">Met / Call</option></select>
+      </div>
+      <div class="ff full"><label>Notes / Message sent</label><textarea id="c-note" placeholder="What message did you send?"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="addbtn" onclick="addConn()">Add connection</button>
+      <button class="ghost-btn" onclick="closeModal('conn-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="cmd-res"></div>
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════
+const COLS=[
+  {id:'applied',l:'Applied',c:'#4f8ef7'},
+  {id:'active',l:'Active',c:'#22c55e'},
+  {id:'waiting',l:'Awaiting Reply',c:'#f5a623'},
+  {id:'building',l:'Building',c:'#9ca3af'},
+  {id:'interview',l:'Interviewing',c:'#a855f7'},
+  {id:'offered',l:'Offered',c:'#a8e063'},
+  {id:'rejected',l:'Rejected',c:'#ef4545'},
+  {id:'wishlist',l:'Wishlist',c:'#555'},
+];
+const PLC={applied:'#4f8ef7',active:'#22c55e',waiting:'#f5a623',building:'#9ca3af',interview:'#a855f7',offered:'#a8e063',rejected:'#ef4545',wishlist:'#555'};
+const SPONSORS={Snyk:1,ComplyAdvantage:1,HiBob:1,Sylvera:1,Pigment:1,Anaplan:1,Bolt:1,Loctax:1,Darktrace:1,Intercom:1,Wise:1,Pleo:1,Synthesia:1,Multiverse:1,Attio:1,TrueLayer:1,Yapily:1,Juro:1,Codat:1,Quantexa:1,Tractable:1,Featurespace:1,'Thought Machine':1,PolyAI:1,Mambu:1,iwoca:1,'Immersive Labs':1,'Griffin Bank':1,Egress:1,Cognism:1,carwow:1,'Cleo AI':1,'Allica Bank':1,Zopa:1,Modulr:1,Beamery:1,Wayve:1,Faculty:1,'Reward Gateway':1,GoCardless:1,'Starling Bank':1,OakNorth:1,Informa:1,Hyperexponential:1,ClearBank:1,Monzo:1,Revolut:1,VivaCity:1,Panaseer:1,Behavox:1,'Funding Circle':1,LendInvest:1,Nium:1};
+const NO_SP={'Clarion Events':1,'Hyve Group':1,'CloserStill Media':1,Ometria:1,Speechmatics:1};
+
+const UK_BOARDS=[
+  {n:'LinkedIn',i:'💼',d:'Global #1',u:'https://www.linkedin.com/jobs/search/?keywords={q}&location={loc}'},
+  {n:'Indeed UK',i:'🔍',d:'Largest UK board',u:'https://uk.indeed.com/jobs?q={q}&l={loc}'},
+  {n:'Glassdoor',i:'🏢',d:'Jobs + reviews',u:'https://www.glassdoor.co.uk/Job/london-jobs-SRCH_IL.0,6_IC2671300.htm?sc.keyword={q}'},
+  {n:'Adzuna',i:'📡',d:'Aggregator',u:'https://www.adzuna.co.uk/search?q={q}&loc={loc}'},
+  {n:'startup.jobs',i:'🚀',d:'Startups',u:'https://startup.jobs/?q={q}'},
+  {n:'Wellfound',i:'😇',d:'Startup ecosystem',u:'https://wellfound.com/jobs?q={q}&l=London%2C+England'},
+  {n:'UK Visa Jobs',i:'🇬🇧',d:'Sponsorship roles',u:'https://www.ukvisajobs.com/?q={q}'},
+  {n:'Otta',i:'🎯',d:'London tech',u:'https://otta.com/jobs?q={q}'},
+  {n:'Tech Nation',i:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',d:'UK tech',u:'https://technation.io/jobs/?q={q}'},
+  {n:'Hired',i:'⚡',d:'Tech & sales',u:'https://hired.com/search?q={q}&location=London'},
+  {n:'Hiring Cafe',i:'☕',d:'Global startups',u:'https://hiring.cafe/?search={q}'},
+  {n:'Remote OK',i:'🌍',d:'Remote-first',u:'https://remoteok.com/remote-jobs?q={q}'},
+];
+const DUBAI_BOARDS=[
+  {n:'LinkedIn UAE',i:'💼',d:'#1 for MENA AE roles',u:'https://www.linkedin.com/jobs/search/?keywords={q}&location=Dubai%2C+UAE'},
+  {n:'Bayt',i:'🌐',d:'44M MENA professionals',u:'https://www.bayt.com/en/uae/jobs/{slug}-jobs/'},
+  {n:'GulfTalent',i:'⭐',d:'9M Gulf professionals',u:'https://www.gulftalent.com/jobs?q={q}&location=Dubai'},
+  {n:'Naukrigulf',i:'🔎',d:'South Asian + GCC corridor',u:'https://www.naukrigulf.com/{slug}-jobs-in-uae'},
+  {n:'Dubizzle Jobs',i:'🏙️',d:'UAE classifieds',u:'https://www.dubizzle.com/jobs/?q={q}'},
+  {n:'Indeed UAE',i:'🔍',d:'Indeed MENA',u:'https://ae.indeed.com/jobs?q={q}&l=Dubai'},
+  {n:'DIFC Careers',i:'🏦',d:'DIFC-registered employers',u:'https://www.difc.ae/business/companies/'},
+  {n:'Salesforce UAE',i:'☁️',d:'Direct — 6+ AE roles live',u:'https://careers.salesforce.com/en/jobs/?location=Dubai&team=Sales'},
+  {n:'Glassdoor UAE',i:'🏢',d:'Reviews + salaries',u:'https://www.glassdoor.com/Job/dubai-{slug}-jobs-SRCH_IL.0,5_IC2477084_KO6,{len}.htm'},
+  {n:'Hiring Cafe',i:'☕',d:'Global startups',u:'https://hiring.cafe/?search={q}'},
+  {n:'Wellfound',i:'😇',d:'Startup AE roles',u:'https://wellfound.com/jobs?q={q}&l=Dubai%2C+UAE'},
+  {n:'Cooper Fitch',i:'🤝',d:'Top UAE recruiter',u:'https://cooperfitch.ae/jobs/?q={q}'},
+];
+const SEQ_STEPS=['View profile','Like a post','Leave a comment','Connect (personalised)','Message + ask'];
+
+const DEFAULT_PROFILE=`Amaan Aslam — Enterprise B2B Sales | Dubai (Golden Visa) | Targeting UK & UAE roles
+
+Background:
+• 3+ years founding BDM at Terrapinn running MOVE America: built £1.4M enterprise pipeline from scratch selling event sponsorships to IBM, Microsoft, SAP, Verizon, Siemens, Waymo, Lime, Voi, Swiftly across mobility, tech and finance
+• Co-founded Swizio (B2B SaaS): led commercial strategy, closed Microsoft, NHS and Audi as enterprise clients, exited 2024 (£50k)
+• LSE MSc Distinction in Management of AI and Digital Innovation (2024–2025)
+• Built live GTM Operating System: ICP scoring, persona search, signal radar, outreach sequences, MEDDPICC inspector — amaanaslam.lovable.app/gtm-os
+• 6,000+ LinkedIn connections incl. CFOs, Finance/HR leaders, F500 decision makers, global mobility network
+• Dubai Golden Visa holder — right to work in UAE, no sponsorship required
+• UK Skilled Worker visa sponsorship required for UK roles`;
+
+const SEED_UK=[
+  {id:1,co:'Snyk',role:'Enterprise AE',status:'applied',date:'2026-04-24',notes:'Application submitted',salary:'£90-110k',market:'uk'},
+  {id:2,co:'Pigment',role:'Mid-Market AE',status:'applied',date:'2026-04-26',notes:'Applied + Nicholas L + Damir Latte contacted',salary:'£70-90k',market:'uk'},
+  {id:3,co:'Anaplan',role:'Enterprise AE',status:'applied',date:'2026-04-26',notes:'Applied + Anthony Vasquez, Holly Baker, Josh McLean',salary:'£90-120k',market:'uk'},
+  {id:4,co:'HiBob',role:'Senior AM',status:'active',date:'2026-04-24',notes:'Edward Tyers + Alex Burton responded positively',salary:'£65-80k',market:'uk'},
+  {id:5,co:'Loctax',role:'BDR',status:'active',date:'2026-04-24',notes:'Isaac Lamb (AE) responded positively',salary:'£30-35k',market:'uk'},
+  {id:6,co:'Harvey AI',role:'AE',status:'waiting',date:'2026-04-24',notes:'Katie Stephenson contacted',salary:'TBC',market:'uk'},
+  {id:7,co:'ComplyAdvantage',role:'Mid-Market AE',status:'waiting',date:'2026-04-26',notes:'Tash Harrison + Oliver Orchard messaged',salary:'£70-90k',market:'uk'},
+  {id:8,co:'Sylvera',role:'SDR',status:'waiting',date:'2026-04-26',notes:'Evie Brenner + Ole Heidelk connections sent',salary:'£45-55k',market:'uk'},
+  {id:9,co:'Informa',role:'Account Director',status:'building',date:'2026-04-24',notes:'Sian Kelly — case by case sponsorship',salary:'£70-90k',market:'uk'},
+  {id:10,co:'Cognism',role:'AE',status:'rejected',date:'2026-04-21',notes:'AE role rejected',salary:'',market:'uk'},
+];
+const SEED_DUBAI=[
+  {id:11,co:'Salesforce MEA',role:'Enterprise AE',status:'wishlist',date:'2026-04-27',notes:'6+ live AE roles in DIFC. Contact: MEA recruiter team',salary:'AED 40-65K/mo',market:'dubai'},
+  {id:12,co:'Databricks',role:'Commercial AE',status:'wishlist',date:'2026-04-27',notes:'Expanding MENA team, DIFC hub',salary:'AED 35-55K/mo',market:'dubai'},
+  {id:13,co:'Tabby',role:'B2B Sales Director',status:'wishlist',date:'2026-04-27',notes:'$660M valuation, 10M+ users, fintech',salary:'AED 40-60K/mo',market:'dubai'},
+];
+const SEED_CONNS=[
+  {id:1,name:'Isaac Lamb',co:'Loctax',title:'Account Executive',status:'replied',note:'Responded positively to BDR inquiry',seq:[1,1,1,1,1],market:'uk'},
+  {id:2,name:'Alex Burton',co:'HiBob',title:'AM Lead',status:'replied',note:'Best culture he has worked in within SaaS',seq:[1,1,1,1,1],market:'uk'},
+  {id:3,name:'Edward Tyers',co:'HiBob',title:'Senior AM',status:'pending',note:'Fit-check message sent',seq:[1,1,0,1,0],market:'uk'},
+  {id:4,name:'Aaron Leonard',co:'VivaCity',title:'GM ANZ',status:'pending',note:'ANZ introduction email sent',seq:[1,0,0,1,1],market:'uk'},
+  {id:5,name:'Chimdi Ike',co:'Watershed',title:'Recruiting',status:'pending',note:'Connection request sent',seq:[1,0,0,1,0],market:'uk'},
+  {id:6,name:'Evie Brenner',co:'Sylvera',title:'People & Talent',status:'pending',note:'Connection sent — will apply after reply',seq:[1,0,0,1,0],market:'uk'},
+  {id:7,name:'Nicholas L.',co:'Pigment',title:'TA Manager EU/US',status:'pending',note:'Applied + connection request sent',seq:[1,0,0,1,1],market:'uk'},
+  {id:8,name:'Tash Harrison',co:'ComplyAdvantage',title:'Global TA GTM',status:'pending',note:'Short direct message sent',seq:[1,0,0,1,1],market:'uk'},
+  {id:9,name:'Oliver Orchard',co:'ComplyAdvantage',title:'Agentic AI',status:'pending',note:'Product question + GTM OS angle',seq:[1,0,0,1,1],market:'uk'},
+  {id:10,name:'Reuben Thomas',co:'Bolt',title:'Senior Talent Partner',status:'pending',note:'MOVE America mobility network angle',seq:[1,0,0,1,1],market:'uk'},
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let roles=[], conns=[], selRole=null, selMarket='uk', boardFilter='all', searchMkt='uk';
+let apiKey='', userProfile=DEFAULT_PROFILE, cvData=null;
+let curBoard='uk'; // which board is active
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function init(){
+  try{
+    const r=localStorage.getItem('rs_roles_v3'); if(r) roles=JSON.parse(r); else roles=[...SEED_UK,...SEED_DUBAI];
+    const c=localStorage.getItem('rs_conns_v3'); if(c) conns=JSON.parse(c); else conns=[...SEED_CONNS];
+    const iv=localStorage.getItem('rs_interviews'); if(iv) interviews=JSON.parse(iv);
+    apiKey=localStorage.getItem('rs_apikey')||'';
+    userProfile=localStorage.getItem('rs_profile')||DEFAULT_PROFILE;
+    gcalClientId=localStorage.getItem('rs_gcal_id')||'';
+  }catch(e){roles=[...SEED_UK,...SEED_DUBAI];conns=[...SEED_CONNS];}
+  document.getElementById('api-key-input').value=apiKey?'••••••••••••':'';
+  document.getElementById('profile-input').value=userProfile;
+  document.getElementById('cv-in').value=userProfile.split('\n').slice(2).join('\n');
+  if(gcalClientId){
+    document.getElementById('gcal-client-id').value=gcalClientId;
+    document.getElementById('gcal-sync-btn').style.display='inline-block';
+    document.getElementById('gcal-status').textContent='Client ID loaded. Click Connect to sync.';
+  }
+  updateApiDot();
+  render();
+  renderBoards();
+  renderInterviews();
+  populateCompanySelect();
+  // Populate company select whenever add-interview modal opens
+  document.getElementById('add-interview-modal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('add-interview-modal'))return;
+    populateCompanySelect();
+  });
+}
+
+function save(){
+  try{
+    localStorage.setItem('rs_roles_v3',JSON.stringify(roles));
+    localStorage.setItem('rs_conns_v3',JSON.stringify(conns));
+    localStorage.setItem('rs_interviews',JSON.stringify(interviews));
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function getSponsor(co){
+  for(const k of Object.keys(SPONSORS)){if(co.toLowerCase().includes(k.toLowerCase())||k.toLowerCase().includes(co.toLowerCase()))return 'YES';}
+  for(const k of Object.keys(NO_SP)){if(co.toLowerCase().includes(k.toLowerCase()))return 'NO';}
+  return 'UNKNOWN';
+}
+function daysSince(dateStr){
+  if(!dateStr)return 0;
+  try{return Math.floor((Date.now()-new Date(dateStr).getTime())/(86400000));}catch(e){return 0;}
+}
+function spBadge(co,mkt){
+  if(mkt==='dubai')return`<span class="badge" style="background:rgba(20,184,166,.12);color:#14b8a6">✓ Right to work</span>`;
+  const s=getSponsor(co);
+  if(s==='YES')return`<span class="badge" style="background:rgba(34,197,94,.12);color:#4ade80">✓ Sponsor</span>`;
+  if(s==='NO')return`<span class="badge" style="background:rgba(239,69,69,.1);color:#f87171">✗ No sponsor</span>`;
+  return`<span class="badge" style="background:rgba(100,100,100,.12);color:#555">? Verify sponsor</span>`;
+}
+function stBadge(status){
+  const c=PLC[status]||'#555',l=COLS.find(x=>x.id===status)?.l||status;
+  return`<span class="badge" style="background:${c}18;color:${c}">${l}</span>`;
+}
+function now(){return new Date().toISOString().split('T')[0];}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function render(){renderBoard('uk');renderBoard('dubai');renderSidebar();renderConns();}
+
+function getFiltered(mkt){
+  let r=roles.filter(x=>x.market===mkt);
+  if(boardFilter==='all')return r;
+  if(boardFilter==='stale7')return r.filter(x=>['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=7&&daysSince(x.date)<14);
+  if(boardFilter==='stale14')return r.filter(x=>['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=14);
+  return r.filter(x=>x.status===boardFilter);
+}
+
+function renderBoard(mkt){
+  const filtered=getFiltered(mkt);
+  const colsEl=document.getElementById(mkt+'-cols');
+  colsEl.innerHTML=COLS.map(col=>{
+    const items=filtered.filter(x=>x.status===col.id);
+    return`<div class="col">
+      <div class="col-h"><span class="col-n" style="color:${col.c}">${col.l}</span><span class="col-c">${items.length}</span></div>
+      <div class="col-body">${items.map(j=>{
+        const d=daysSince(j.date);
+        const stale=d>=14?'stale14':d>=7?'stale7':'';
+        return`<div class="jcard${selRole&&selRole.id===j.id?' sel':''} ${stale}" onclick="openPanel(${j.id},'${mkt}')">
+          <div class="jco">${j.co}</div>
+          <div class="jro">${j.role}</div>
+          ${j.salary?`<div style="font-size:10px;color:var(--acc);margin-bottom:5px">${j.salary}</div>`:''}
+          <div style="margin-bottom:5px">${spBadge(j.co,j.market)}</div>
+          <div class="jft"><span class="jdt">${j.date||''}</span>${stBadge(j.status)}</div>
+          ${j.notes?`<div class="jnotes">${j.notes.substring(0,65)}${j.notes.length>65?'...':''}</div>`:''}
+          ${stale?`<div class="stale-flag">⏰ ${d} days — follow up needed</div>`:''}
+        </div>`;}).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  // Reminder banner
+  const stale7=roles.filter(x=>x.market===mkt&&['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=7&&daysSince(x.date)<14).length;
+  const stale14=roles.filter(x=>x.market===mkt&&['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=14).length;
+  const banner=document.getElementById(mkt+'-reminder');
+  const bannerTxt=document.getElementById(mkt+'-reminder-text');
+  if(stale7+stale14>0){
+    banner.classList.add('on');
+    bannerTxt.textContent=`${stale14} role${stale14!==1?'s':''} overdue (14+ days) · ${stale7} role${stale7!==1?'s':''} approaching (7+ days) — check your follow-ups`;
+  }else{banner.classList.remove('on');}
+}
+
+function renderSidebar(){
+  document.getElementById('cnt-all').textContent=roles.length;
+  ['applied','active','waiting','interview','offered'].forEach(s=>{
+    const el=document.getElementById('cnt-'+s);
+    if(el)el.textContent=roles.filter(x=>x.status===s).length;
+  });
+  const s7=roles.filter(x=>['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=7&&daysSince(x.date)<14).length;
+  const s14=roles.filter(x=>['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=14).length;
+  document.getElementById('cnt-stale7').textContent=s7;
+  document.getElementById('cnt-stale14').textContent=s14;
+  document.getElementById('st-total').textContent=roles.length;
+  document.getElementById('st-uk').textContent=roles.filter(x=>x.market==='uk').length;
+  document.getElementById('st-dubai').textContent=roles.filter(x=>x.market==='dubai').length;
+  document.getElementById('st-conns').textContent=conns.length;
+}
+
+// ══════════════════════════════════════════════════════
+// PANEL
+// ══════════════════════════════════════════════════════
+function openPanel(id,mkt){
+  const j=roles.find(x=>x.id===id);if(!j)return;
+  selRole=j;
+  const panelId=mkt==='dubai'?'rpanel2':'rpanel';
+  const rptId=mkt==='dubai'?'rpt2':'rpt';
+  const rpbId=mkt==='dubai'?'rpb2':'rpb';
+  document.getElementById(panelId).classList.add('on');
+  document.getElementById(rptId).textContent=`${j.co} — ${j.role}`;
+  const d=daysSince(j.date);
+  document.getElementById(rpbId).innerHTML=`
+    ${j.salary?`<div class="fl">Salary / Package</div><div class="fv" style="color:var(--acc)">${j.salary}</div>`:''}
+    <div class="fl">Sponsor / Right to work</div>${spBadge(j.co,j.market)}
+    <div class="fl">Days since last action</div>
+    <div class="fv" style="color:${d>=14?'var(--red)':d>=7?'var(--yellow)':'var(--t2)'}">${d} days ago ${d>=7?'⏰ Follow-up recommended':''}</div>
+    <div class="fl">Notes</div><div class="fv">${j.notes||'No notes'}</div>
+    <div class="fl">Move stage</div>
+    <div class="stage-row">${COLS.map(c=>`<button class="sp${j.status===c.id?' on':''}" onclick="moveStage(${j.id},'${c.id}','${mkt}')">${c.l}</button>`).join('')}</div>
+    <button class="aibtn" onclick="ghostwriter(${j.id})">✦ Ghostwriter — draft outreach</button>
+    <div id="gw-${j.id}"></div>
+    <button class="aibtn" style="margin-top:6px;border-color:rgba(168,85,247,.3);color:var(--purple);background:rgba(168,85,247,.07)" onclick="interviewPrep(${j.id})">🎯 Interview prep — predict questions</button>
+    <div id="prep-${j.id}"></div>
+    <button class="aibtn" style="margin-top:6px;border-color:rgba(20,184,166,.3);color:var(--teal);background:rgba(20,184,166,.07)" onclick="companyResearch(${j.id})">🔍 Company research brief</button>
+    <div id="research-${j.id}"></div>
+    <div class="panel-actions">
+      <button class="btn-sm" onclick="window.open('https://www.linkedin.com/jobs/search/?keywords='+encodeURIComponent('${j.co} ${j.role}'),'_blank')">LinkedIn ↗</button>
+      <button class="btn-sm" onclick="prefillCV('${j.co.replace(/'/g,"\\'")}','${j.role.replace(/'/g,"\\'")}')">Tailor CV</button>
+      <button class="btn-sm" onclick="markFollowedUp(${j.id},'${mkt}')">✓ Followed up</button>
+      <button class="btn-sm dng" onclick="deleteRole(${j.id})">Remove</button>
+    </div>`;
+  renderBoard(mkt);
+}
+function closePanel(){document.getElementById('rpanel').classList.remove('on');selRole=null;renderBoard('uk');}
+function closePanel2(){document.getElementById('rpanel2').classList.remove('on');selRole=null;renderBoard('dubai');}
+async function moveStage(id,status,mkt){
+  const j=roles.find(x=>x.id===id);
+  if(j){j.status=status;j.date=now();save();openPanel(id,mkt);renderSidebar();}
+}
+function markFollowedUp(id,mkt){
+  const j=roles.find(x=>x.id===id);
+  if(j){j.date=now();save();openPanel(id,mkt);renderSidebar();}
+}
+async function deleteRole(id){roles=roles.filter(x=>x.id!==id);save();closePanel();closePanel2();render();}
+
+// ══════════════════════════════════════════════════════
+// GHOSTWRITER
+// ══════════════════════════════════════════════════════
+async function ghostwriter(id){
+  if(!apiKey){alert('Add your Anthropic API key in Settings first.');showView('settings');return;}
+  const j=roles.find(x=>x.id===id);if(!j)return;
+  const el=document.getElementById('gw-'+id);
+  el.innerHTML=`<div class="ld">Writing outreach...</div>`;
+  try{
+    const res=await callClaude(`Write a 270-char LinkedIn outreach from Amaan Aslam to a recruiter/hiring manager at ${j.co} about the ${j.role} role. His profile: ${userProfile.substring(0,400)}. Warm, direct, peer-register. Max 300 chars total.`,250);
+    el.innerHTML=`<div class="ai-out">${res}</div><button class="cpbtn" onclick="navigator.clipboard.writeText(\`${res.replace(/`/g,'\\`')}\`).then(()=>this.textContent='Copied ✓')">Copy</button>`;
+  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
+}
+
+// ══════════════════════════════════════════════════════
+// CV STUDIO
+// ══════════════════════════════════════════════════════
+function prefillCV(co,role){
+  document.getElementById('jd-in').value=`Role: ${role} at ${co}\n\nPaste the full job description here.`;
+  showView('cv');
+}
+
+let cvRawText='';
+
+async function generateCV(){
+  if(!apiKey){alert('Add your Anthropic API key in Settings first.');showView('settings');return;}
+  const jd=document.getElementById('jd-in').value.trim();
+  const cv=document.getElementById('cv-in').value.trim()||userProfile;
+  if(!jd){alert('Paste a job description first.');return;}
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;btn.textContent='Generating...';
+  document.getElementById('cv-left-output').innerHTML=`<div class="ld">Analysing JD and tailoring CV...</div>`;
+  try{
+    const prompt=`You are an expert CV writer. Tailor the following CV to the job description. Output ONLY valid JSON, no other text.
+
+JD:
+${jd}
+
+CV/Profile:
+${cv}
+
+Return this exact JSON structure:
+{
+  "name": "candidate name",
+  "contact": "email | phone | linkedin | location",
+  "summary": "2-3 sentence professional summary tailored to this exact role",
+  "experience": [
+    {
+      "title": "Job Title",
+      "company": "Company Name",
+      "dates": "Month Year – Month Year",
+      "bullets": ["quantified achievement bullet 1", "bullet 2", "bullet 3"]
+    }
+  ],
+  "education": [
+    {"degree": "Degree Name", "institution": "Institution", "dates": "Year", "note": "optional note"}
+  ],
+  "skills": ["skill1", "skill2", "skill3"],
+  "ats_score": 78,
+  "keywords_matched": ["kw1", "kw2", "kw3"],
+  "keywords_missing": ["kw1", "kw2"]
+}
+
+Rules:
+- Use ONLY real information from the CV — never invent metrics or experiences
+- Mirror JD language exactly where truthful
+- Start every bullet with a strong action verb followed by a quantified outcome
+- Keep bullets concise and specific
+- ATS score 0-100 based on keyword match percentage`;
+
+    const raw=await callClaude(prompt,2000);
+    const clean=raw.replace(/```json\n?|```\n?/g,'').trim();
+    cvData=JSON.parse(clean);
+    cvRawText=buildCVText(cvData);
+    renderCVPreview(cvData);
+    renderATSBar(cvData);
+    document.getElementById('cv-left-output').innerHTML=`
+      <div style="font-size:11px;color:var(--t2);margin-bottom:8px">✓ CV generated. Keywords:</div>
+      <div style="margin-bottom:6px">${(cvData.keywords_matched||[]).map(k=>`<span class="kw-chip">✓ ${k}</span>`).join('')}</div>
+      ${cvData.keywords_missing?.length?`<div style="font-size:10px;color:var(--t3);margin-bottom:4px">Missing keywords:</div>${cvData.keywords_missing.map(k=>`<span class="kw-chip miss">✗ ${k}</span>`).join('')}`:''}`;
+    ['dl-docx','dl-pdf','dl-copy'].forEach(id=>document.getElementById(id).disabled=false);
+  }catch(e){
+    document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;
+  }
+  btn.disabled=false;btn.textContent='Generate ATS CV ↗';
+}
+
+function renderATSBar(data){
+  const score=data.ats_score||0;
+  const barEl=document.getElementById('ats-bar');
+  barEl.style.display='flex';
+  document.getElementById('ats-score').textContent=score+'%';
+  document.getElementById('ats-score').style.color=score>=75?'#4ade80':score>=60?'#f5a623':'#ef4545';
+  document.getElementById('ats-fill').style.width=score+'%';
+  document.getElementById('ats-fill').style.background=score>=75?'#4ade80':score>=60?'#f5a623':'#ef4545';
+  document.getElementById('ats-matched').textContent=`${(data.keywords_matched||[]).length} keywords matched`;
+}
+
+function buildCVText(data){
+  let t=`${data.name||'Name'}\n${data.contact||''}\n\nSUMMARY\n${data.summary||''}\n\nEXPERIENCE\n`;
+  (data.experience||[]).forEach(e=>{t+=`\n${e.title} | ${e.company} | ${e.dates}\n`;(e.bullets||[]).forEach(b=>{t+=`• ${b}\n`;});});
+  t+=`\nEDUCATION\n`;
+  (data.education||[]).forEach(e=>{t+=`${e.degree} | ${e.institution} | ${e.dates}${e.note?` — ${e.note}`:''}\n`;});
+  t+=`\nSKILLS\n${(data.skills||[]).join(' · ')}`;
+  return t;
+}
+
+function renderCVPreview(data){
+  const font=document.getElementById('fmt-font').value;
+  const size=document.getElementById('fmt-size').value;
+  const wrap=document.getElementById('cv-preview-wrap');
+  wrap.innerHTML=`<div class="cv-preview" id="cv-doc" style="font-family:${font};font-size:${size}pt">
+    <h1 style="font-family:${font};font-size:${parseInt(size)+11}pt">${data.name||'Your Name'}</h1>
+    <div class="contact-line">${(data.contact||'').replace(/\|/g,'·')}</div>
+    <div class="section-head">Professional Summary</div>
+    <p style="font-size:${size}pt;line-height:1.5;margin-bottom:10px">${data.summary||''}</p>
+    <div class="section-head">Experience</div>
+    ${(data.experience||[]).map(e=>`
+      <div class="job-title">${e.title}</div>
+      <div class="job-meta">${e.company} &nbsp;|&nbsp; ${e.dates}</div>
+      <ul>${(e.bullets||[]).map(b=>`<li style="font-size:${Math.max(parseInt(size)-0.5,9)}pt">${b}</li>`).join('')}</ul>
+      <div style="height:8px"></div>`).join('')}
+    <div class="section-head">Education</div>
+    ${(data.education||[]).map(e=>`
+      <div class="job-title">${e.degree}</div>
+      <div class="job-meta">${e.institution} &nbsp;|&nbsp; ${e.dates}${e.note?` &nbsp;|&nbsp; ${e.note}`:''}</div>
+      <div style="height:6px"></div>`).join('')}
+    <div class="section-head">Skills</div>
+    <div class="skills-grid">${(data.skills||[]).map(s=>`<span class="skill-item">• ${s}</span>`).join('')}</div>
+  </div>`;
+}
+
+function updatePreviewFont(){
+  if(!cvData)return;
+  renderCVPreview(cvData);
+}
+
+// ── DOCX Download ──
+async function downloadDOCX(){
+  if(!cvData){return;}
+  const font=document.getElementById('fmt-font').value.replace(/'/g,'');
+  const size=parseInt(document.getElementById('fmt-size').value)*2; // DXA half-points
+
+  const {Document,Packer,Paragraph,TextRun,AlignmentType,HeadingLevel,LevelFormat,BorderStyle,WidthType,UnderlineType}=docx;
+
+  const makeLine=(text,opts={})=>new Paragraph({children:[new TextRun({text,font,size,bold:opts.bold,color:opts.color})],...(opts.spacing?{spacing:opts.spacing}:{})});
+  const makeBullet=(text)=>new Paragraph({numbering:{reference:'bullets',level:0},children:[new TextRun({text,font,size:size-1})]});
+  const makeSectionHead=(text)=>new Paragraph({
+    children:[new TextRun({text,font,size:size+2,bold:true,color:'111111'})],
+    border:{bottom:{style:BorderStyle.SINGLE,size:6,color:'111111',space:1}},
+    spacing:{before:200,after:80}
+  });
+
+  const children=[
+    new Paragraph({children:[new TextRun({text:cvData.name||'Your Name',font,size:size+20,bold:true,color:'111111'})],spacing:{after:60}}),
+    new Paragraph({children:[new TextRun({text:(cvData.contact||'').replace(/\|/g,'·'),font,size:size-2,color:'555555'})],spacing:{after:160}}),
+    makeSectionHead('PROFESSIONAL SUMMARY'),
+    new Paragraph({children:[new TextRun({text:cvData.summary||'',font,size})],spacing:{after:200}}),
+    makeSectionHead('EXPERIENCE'),
+  ];
+
+  (cvData.experience||[]).forEach(e=>{
+    children.push(new Paragraph({children:[new TextRun({text:e.title,font,size,bold:true})],spacing:{before:140,after:20}}));
+    children.push(new Paragraph({children:[new TextRun({text:`${e.company}  |  ${e.dates}`,font,size:size-2,color:'555555'})],spacing:{after:60}}));
+    (e.bullets||[]).forEach(b=>children.push(makeBullet(b)));
+    children.push(new Paragraph({children:[],spacing:{after:80}}));
+  });
+
+  children.push(makeSectionHead('EDUCATION'));
+  (cvData.education||[]).forEach(e=>{
+    children.push(new Paragraph({children:[new TextRun({text:e.degree,font,size,bold:true})],spacing:{before:100,after:20}}));
+    children.push(new Paragraph({children:[new TextRun({text:`${e.institution}  |  ${e.dates}${e.note?`  |  ${e.note}`:''}`,font,size:size-2,color:'555555'})],spacing:{after:80}}));
+  });
+
+  children.push(makeSectionHead('SKILLS'));
+  children.push(new Paragraph({children:[new TextRun({text:(cvData.skills||[]).join(' · '),font,size:size-1})]}));
+
+  const doc=new Document({
+    numbering:{config:[{reference:'bullets',levels:[{level:0,format:LevelFormat.BULLET,text:'•',alignment:AlignmentType.LEFT,style:{paragraph:{indent:{left:360,hanging:180}}}}]}]},
+    sections:[{
+      properties:{page:{size:{width:11906,height:16838},margin:{top:1080,right:1080,bottom:1080,left:1080}}},
+      children
+    }]
+  });
+
+  const blob=await Packer.toBlob(doc);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${(cvData.name||'CV').replace(/\s+/g,'_')}_ATS_CV.docx`;
+  a.click();
+}
+
+// ── PDF Download ──
+async function downloadPDF(){
+  if(!cvData){return;}
+  const el=document.getElementById('cv-doc');
+  if(!el){alert('Generate CV first.');return;}
+  const btn=document.getElementById('dl-pdf');
+  btn.textContent='⟳ Generating PDF...';btn.disabled=true;
+  const opt={
+    margin:[12,14,12,14],
+    filename:`${(cvData.name||'CV').replace(/\s+/g,'_')}_ATS_CV.pdf`,
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true,logging:false},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  };
+  try{await html2pdf().set(opt).from(el).save();}catch(e){alert('PDF error: '+e.message);}
+  btn.textContent='⬇ Download PDF';btn.disabled=false;
+}
+
+function copyCV(){
+  navigator.clipboard.writeText(cvRawText).then(()=>{
+    const btn=document.getElementById('dl-copy');
+    btn.textContent='✓ Copied!';
+    setTimeout(()=>btn.textContent='⎘ Copy text',2000);
+  });
+}
+
+async function draftCoverLetter(){
+  if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
+  const jd=document.getElementById('jd-in').value.trim();
+  if(!jd){alert('Paste JD first.');return;}
+  document.getElementById('cv-left-output').innerHTML=`<div class="ld">Drafting cover letter...</div>`;
+  try{
+    const res=await callClaude(`Write a 3-paragraph cover letter for the following candidate applying to this role. Confident, direct, references specific company details from the JD. Never use: leverage, synergy, passionate, spearheaded, dynamic, embark.\n\nCandidate:\n${userProfile}\n\nJD:\n${jd}`,700);
+    document.getElementById('cv-left-output').innerHTML=`<div class="ai-out" style="max-height:none">${res}</div><button class="cpbtn" style="margin-top:6px" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(()=>this.textContent='Copied ✓')">Copy</button>`;
+  }catch(e){document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
+}
+
+async function draftOutreach(){
+  if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
+  const jd=document.getElementById('jd-in').value.trim();
+  if(!jd){alert('Paste JD first.');return;}
+  document.getElementById('cv-left-output').innerHTML=`<div class="ld">Drafting outreach...</div>`;
+  try{
+    const res=await callClaude(`Write a 270-char LinkedIn connection request for this candidate for the role. Warm, direct, peer-register. Under 300 chars total.\n\nCandidate:\n${userProfile.substring(0,400)}\n\nRole:\n${jd.substring(0,400)}`,200);
+    document.getElementById('cv-left-output').innerHTML=`<div class="ai-out">${res}</div><div style="font-size:10px;color:var(--t2);margin-top:4px">${res.length} chars</div><button class="cpbtn" style="margin-top:4px" onclick="navigator.clipboard.writeText(\`${res.replace(/`/g,'\\`')}\`).then(()=>this.textContent='Copied ✓')">Copy</button>`;
+  }catch(e){document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
+}
+
+// ══════════════════════════════════════════════════════
+// SEARCH + FIT SCORER
+// ══════════════════════════════════════════════════════
+function renderBoards(){
+  const boards=searchMkt==='uk'?UK_BOARDS:DUBAI_BOARDS;
+  document.getElementById('boards-grid').innerHTML=boards.map(b=>`
+    <div class="bcard" onclick="openBoard('${b.u}')">
+      <div class="bcard-icon">${b.i}</div>
+      <div class="bcard-name">${b.n}</div>
+      <div class="bcard-desc">${b.d}</div>
+    </div>`).join('');
+}
+function openBoard(tmpl){
+  const q=document.getElementById('sq').value||'Enterprise Account Executive';
+  const loc=document.getElementById('sq-loc').value||'London';
+  const slug=q.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const url=tmpl.replace(/\{q\}/g,encodeURIComponent(q)).replace(/\{loc\}/g,encodeURIComponent(loc)).replace(/\{slug\}/g,slug).replace(/\{len\}/g,q.split(' ').join('-').length);
+  window.open(url,'_blank');
+}
+function openAllBoards(){
+  const boards=searchMkt==='uk'?UK_BOARDS:DUBAI_BOARDS;
+  boards.forEach((b,i)=>setTimeout(()=>openBoard(b.u),i*350));
+}
+function switchSearchMkt(mkt,el){
+  searchMkt=mkt;
+  document.querySelectorAll('.mtab').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sq-loc').value=mkt==='dubai'?'Dubai':'London';
+  renderBoards();
+}
+
+async function scoreFit(){
+  if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
+  const jd=document.getElementById('fit-jd').value.trim();
+  if(!jd){return;}
+  document.getElementById('fit-result').innerHTML=`<div class="ld">Scoring fit...</div>`;
+  try{
+    const res=await callClaude(`Score the fit of this candidate for the role. Return JSON only: {"score":1-10,"verdict":"GO|MAYBE|SKIP","reasons":["reason1","reason2","reason3"],"gaps":["gap1"],"salary_est":"estimate"}\n\nCandidate:\n${userProfile.substring(0,500)}\n\nJD:\n${jd}`,400);
+    const d=JSON.parse(res.replace(/```json\n?|```\n?/g,'').trim());
+    const vc={GO:'var(--green)',MAYBE:'var(--yellow)',SKIP:'var(--red)'}[d.verdict]||'var(--t2)';
+    document.getElementById('fit-result').innerHTML=`
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:${vc}">${d.score}/10</span>
+          <span style="font-weight:700;color:${vc}">${d.verdict}</span>
+          ${d.salary_est?`<span style="color:var(--acc);font-size:12px">${d.salary_est}</span>`:''}
+        </div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:6px">Strengths</div>
+        ${(d.reasons||[]).map(r=>`<div style="font-size:11px;color:var(--t1);margin-bottom:3px">✓ ${r}</div>`).join('')}
+        ${d.gaps?.length?`<div style="font-size:11px;color:var(--t2);margin-top:8px;margin-bottom:4px">Gaps</div>${d.gaps.map(g=>`<div style="font-size:11px;color:var(--red)">✗ ${g}</div>`).join('')}`:''}
+      </div>`;
+  }catch(e){document.getElementById('fit-result').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
+}
+
+// ══════════════════════════════════════════════════════
+// CONNECTIONS
+// ══════════════════════════════════════════════════════
+function renderConns(){
+  const q=(document.getElementById('conn-q')?.value||'').toLowerCase();
+  const sf=document.getElementById('conn-sf')?.value||'';
+  const CLBL={pending:'Sent',connected:'Connected',replied:'Replied',met:'Met'};
+  const CCLR={pending:'#f5a623',connected:'#4f8ef7',replied:'#22c55e',met:'#a8e063'};
+  const filtered=conns.filter(c=>(!q||c.name.toLowerCase().includes(q)||c.co.toLowerCase().includes(q))&&(!sf||c.status===sf));
+  document.getElementById('conn-grid').innerHTML=filtered.map(c=>{
+    const seq=c.seq||[0,0,0,0,0];
+    const doneCount=seq.filter(x=>x).length;
+    return`<div class="ccard">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div><div class="cname">${c.name}</div><div class="ctitle">${c.title||''} @ ${c.co}</div></div>
+        <span class="badge" style="background:${CCLR[c.status]||'#555'}18;color:${CCLR[c.status]||'#555'};font-size:10px">${CLBL[c.status]||c.status}</span>
+      </div>
+      ${c.note?`<div class="cnote">${c.note}</div>`:''}
+      <div style="margin-top:8px">
+        <div style="font-size:9px;color:var(--t3);margin-bottom:4px;letter-spacing:.5px">SEQUENCE — Step ${doneCount}/5</div>
+        <div class="seq-mini" title="${SEQ_STEPS.join(' → ')}">
+          ${seq.map((done,i)=>`<div class="seq-dot${done?' done':''}" onclick="toggleSeq(${c.id},${i})" title="${SEQ_STEPS[i]}"></div>`).join('')}
+        </div>
+        <div style="font-size:9px;color:var(--t3);margin-top:3px">${doneCount<5?SEQ_STEPS[doneCount]||'Complete':'All steps done ✓'}</div>
+      </div>
+      <div class="cft">
+        <select onchange="updateConn(${c.id},this.value)" style="background:var(--s3);border:1px solid var(--bd2);border-radius:4px;padding:3px 7px;color:var(--t2);font-size:11px;outline:none;font-family:'DM Mono',monospace">
+          ${Object.entries(CLBL).map(([v,l])=>`<option value="${v}"${c.status===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+        <button onclick="deleteConn(${c.id})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:2px 5px">✕</button>
+      </div>
+    </div>`;
+  }).join('')||'<div style="color:var(--t2);font-size:13px;padding:20px">No connections found</div>';
+}
+
+async function toggleSeq(id,step){
+  const c=conns.find(x=>x.id===id);
+  if(!c){return;}
+  if(!c.seq)c.seq=[0,0,0,0,0];
+  c.seq[step]=c.seq[step]?0:1;
+  if(step===3&&c.seq[step])c.status='connected';
+  if(step===4&&c.seq[step])c.status='replied';
+  save();renderConns();
+}
+async function updateConn(id,status){const c=conns.find(x=>x.id===id);if(c){c.status=status;save();renderConns();}}
+async function deleteConn(id){conns=conns.filter(x=>x.id!==id);save();renderConns();renderSidebar();}
+
+// ══════════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('on');}
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+
+async function addRole(){
+  const co=document.getElementById('a-co').value.trim(),role=document.getElementById('a-role').value.trim();
+  if(!co||!role)return;
+  roles.push({id:Date.now(),co,role,market:document.getElementById('a-market').value,status:document.getElementById('a-status').value,date:document.getElementById('a-date').value||now(),notes:document.getElementById('a-notes').value,salary:document.getElementById('a-salary').value});
+  save();render();closeModal('add-modal');
+  ['a-co','a-role','a-date','a-notes','a-salary'].forEach(id=>document.getElementById(id).value='');
+}
+
+async function addConn(){
+  const name=document.getElementById('c-name').value.trim();if(!name)return;
+  conns.push({id:Date.now(),name,co:document.getElementById('c-co').value,title:document.getElementById('c-title').value,status:document.getElementById('c-status').value,note:document.getElementById('c-note').value,seq:[0,0,0,0,0]});
+  save();renderConns();renderSidebar();closeModal('conn-modal');
+  ['c-name','c-co','c-title','c-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ══════════════════════════════════════════════════════
+// BOARD / VIEW NAV
+// ══════════════════════════════════════════════════════
+function showBoard(mkt){
+  curBoard=mkt;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+mkt).classList.add('on');
+  document.querySelectorAll('.nb').forEach(el=>el.classList.remove('on'));
+  document.getElementById('n-'+mkt).classList.add('on');
+  selRole=null;
+}
+
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+v).classList.add('on');
+  document.querySelectorAll('.nb').forEach(el=>el.classList.remove('on'));
+  const nb=document.getElementById('n-'+v);if(nb)nb.classList.add('on');
+  document.getElementById('cmd-res').style.display='none';
+  if(v==="interviews"){renderInterviews();populateCompanySelect();}
+}
+
+function filterBoard(f,el){
+  boardFilter=f;
+  document.querySelectorAll('.sidebar .si').forEach(e=>e.classList.remove('on'));
+  if(el)el.classList.add('on');
+  const lbl=f==='all'?'All roles':f==='stale7'?'7-day stale':f==='stale14'?'14-day stale':(COLS.find(c=>c.id===f)?.l||f);
+  document.getElementById('uk-filter-label').textContent=lbl;
+  document.getElementById('dubai-filter-label').textContent=lbl;
+  render();
+  // show whichever board is current
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+curBoard).classList.add('on');
+}
+
+// ══════════════════════════════════════════════════════
+// CMD+K
+// ══════════════════════════════════════════════════════
+function cmdSearch(q){
+  const el=document.getElementById('cmd-res');
+  if(!q){el.style.display='none';return;}
+  const m=roles.filter(r=>r.co.toLowerCase().includes(q.toLowerCase())||r.role.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!m.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=m.map(r=>`<div class="cmd-item" onclick="jumpTo(${r.id},'${r.market}')">
+    <div><div class="cmd-co">${r.co} <span style="font-size:9px;color:${r.market==='dubai'?'#14b8a6':'#4f8ef7'}">${r.market==='dubai'?'🇦🇪':'🇬🇧'}</span></div><div class="cmd-role">${r.role}</div></div>
+    ${stBadge(r.status)}
+  </div>`).join('');
+}
+function cmdKey(e){if(e.key==='Escape'){document.getElementById('cmd-res').style.display='none';document.getElementById('cmd-input').value='';}}
+function jumpTo(id,mkt){showBoard(mkt);setTimeout(()=>openPanel(id,mkt),50);document.getElementById('cmd-input').value='';document.getElementById('cmd-res').style.display='none';}
+document.addEventListener('click',e=>{if(!e.target.closest('#cmd-input')&&!e.target.closest('#cmd-res'))document.getElementById('cmd-res').style.display='none';});
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('cmd-input').focus();}});
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on');}));
+
+// ══════════════════════════════════════════════════════
+// GOOGLE CALENDAR
+// ══════════════════════════════════════════════════════
+let gcalClientId='', gcalToken=null, interviews=[];
+
+function saveGCalId(){
+  gcalClientId=document.getElementById('gcal-client-id').value.trim();
+  if(!gcalClientId)return;
+  localStorage.setItem('rs_gcal_id',gcalClientId);
+  document.getElementById('gcal-sync-btn').style.display='inline-block';
+  document.getElementById('gcal-status').textContent='Client ID saved. Click Connect to sync.';
+}
+
+function loadGCalScript(){
+  return new Promise(resolve=>{
+    if(window.google&&window.google.accounts){resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://accounts.google.com/gsi/client';
+    s.onload=resolve;
+    document.head.appendChild(s);
+  });
+}
+
+async function connectCalendar(){
+  if(!gcalClientId){alert('Save your Google OAuth Client ID first.');return;}
+  document.getElementById('gcal-status').textContent='Loading Google auth...';
+  try{
+    await loadGCalScript();
+    const client=google.accounts.oauth2.initTokenClient({
+      client_id:gcalClientId,
+      scope:'https://www.googleapis.com/auth/calendar.readonly',
+      callback:(resp)=>{
+        if(resp.error){document.getElementById('gcal-status').textContent='Auth error: '+resp.error;return;}
+        gcalToken=resp.access_token;
+        localStorage.setItem('jo_gcal_token_exp',String(Date.now()+3500000));
+        document.getElementById('gcal-status').textContent='✓ Connected';
+        document.getElementById('gcal-resync-btn').style.display='inline-block';
+        document.getElementById('gcal-sync-btn').style.display='none';
+        syncCalendar();
+      }
+    });
+    client.requestAccessToken({prompt:'consent'});
+  }catch(e){document.getElementById('gcal-status').textContent='Error: '+e.message;}
+}
+
+async function syncCalendar(){
+  if(!gcalToken){document.getElementById('gcal-status').textContent='Not connected — click Connect first.';return;}
+  document.getElementById('gcal-status').textContent='Syncing...';
+  try{
+    const now=new Date().toISOString();
+    const future=new Date(Date.now()+60*86400000).toISOString();
+    const res=await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(now)}&timeMax=${encodeURIComponent(future)}&singleEvents=true&orderBy=startTime&maxResults=100`,
+      {headers:{Authorization:`Bearer ${gcalToken}`}}
+    );
+    if(!res.ok)throw new Error('Calendar API error '+res.status);
+    const data=await res.json();
+    const events=data.items||[];
+
+    // Filter interview-related events
+    const INTERVIEW_KW=/interview|screen|screening|technical|hiring manager|recruiter|hr call|talent|assessment|case study|take.home|meet the team/i;
+    const intEvents=events.filter(e=>{
+      const text=(e.summary||'')+' '+(e.description||'');
+      return INTERVIEW_KW.test(text);
+    });
+
+    // Match to pipeline companies
+    const matched=[];
+    intEvents.forEach(evt=>{
+      const evtText=((evt.summary||'')+' '+(evt.description||'')).toLowerCase();
+      let matchedRole=null;
+      roles.forEach(role=>{
+        if(evtText.includes(role.co.toLowerCase())||role.co.toLowerCase().split(' ').some(w=>w.length>3&&evtText.includes(w))){
+          matchedRole=role;
+        }
+      });
+      const start=evt.start?.dateTime||evt.start?.date;
+      matched.push({
+        id:evt.id,
+        summary:evt.summary||'Untitled',
+        start,
+        end:evt.end?.dateTime||evt.end?.date,
+        description:evt.description||'',
+        link:evt.hangoutLink||evt.location||'',
+        roleId:matchedRole?.id||null,
+        company:matchedRole?.co||extractCompanyFromEvent(evt.summary||''),
+        role:matchedRole?.role||''
+      });
+      // Auto-advance to interview stage
+      if(matchedRole&&matchedRole.status==='waiting'||matchedRole?.status==='active'){
+        matchedRole.status='interview';
+        matchedRole.date=now.split('T')[0];
+      }
+    });
+
+    interviews=[...matched,...interviews.filter(i=>!i.fromCal)];
+    save();
+    render();
+    renderInterviews();
+    updateCalBadges();
+
+    // Preview in settings
+    const preview=document.getElementById('gcal-events-preview');
+    if(matched.length){
+      preview.innerHTML=`<div style="font-size:11px;color:var(--acc);margin-bottom:6px">✓ Found ${matched.length} interview event${matched.length!==1?'s':''}</div>`+
+        matched.map(e=>`<div style="font-size:11px;color:var(--t2);padding:3px 0;border-bottom:1px solid var(--bd)">${formatDate(e.start)} — ${e.summary}${e.company?` <span style="color:var(--acc)">(${e.company})</span>`:''}</div>`).join('');
+    }else{
+      preview.innerHTML=`<div style="font-size:11px;color:var(--t2)">No interview events found in next 60 days.</div>`;
+    }
+    document.getElementById('gcal-status').textContent=`✓ Synced ${matched.length} interviews · Last sync: ${new Date().toLocaleTimeString()}`;
+    document.getElementById('cal-sync-notice').style.display='none';
+  }catch(e){
+    document.getElementById('gcal-status').textContent='Sync error: '+e.message;
+  }
+}
+
+function extractCompanyFromEvent(title){
+  // Try to extract company from "Interview with CompanyName" or "CompanyName Interview"
+  const m=title.match(/(?:with|at|@)\s+([A-Z][a-zA-Z]+)/)||title.match(/^([A-Z][a-zA-Z]+)\s+(?:Interview|Screen|Call)/);
+  return m?m[1]:'';
+}
+
+function formatDate(dateStr){
+  if(!dateStr)return'TBC';
+  try{
+    const d=new Date(dateStr);
+    return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+(dateStr.includes('T')?' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'');
+  }catch(e){return dateStr;}
+}
+
+function daysUntil(dateStr){
+  if(!dateStr)return 999;
+  try{
+    const d=new Date(dateStr);
+    const today=new Date();today.setHours(0,0,0,0);
+    return Math.ceil((d-today)/86400000);
+  }catch(e){return 999;}
+}
+
+function renderInterviews(){
+  const list=document.getElementById('interviews-list');
+  if(!list)return;
+  const allInts=[...interviews].sort((a,b)=>new Date(a.start)-new Date(b.start));
+  if(!allInts.length){
+    list.innerHTML=`<div style="text-align:center;padding:40px;color:var(--t3)"><div style="font-size:32px;margin-bottom:12px">📅</div>No interviews scheduled yet.<br><span style="font-size:11px">Connect Google Calendar in Settings or add manually above.</span></div>`;
+    return;
+  }
+  list.innerHTML=allInts.map(int=>{
+    const du=daysUntil(int.start);
+    const isToday=du===0,isSoon=du<=3;
+    const role=roles.find(r=>r.id===int.roleId);
+    return`<div class="int-card${isToday?' today':isSoon?' soon':''}">
+      <div class="int-left">
+        <div class="int-company">${int.company||int.summary}</div>
+        ${int.role?`<div class="int-title">${int.role}</div>`:''}
+        <div class="int-time">📅 ${formatDate(int.start)}</div>
+        ${int.link?`<div style="margin-top:4px"><a href="${int.link}" target="_blank" style="font-size:11px;color:var(--blue)">↗ Join meeting</a></div>`:''}
+        ${int.fromCal?`<span class="cal-pill">📅 Google Calendar</span>`:''}
+        ${int.description?`<div style="font-size:10px;color:var(--t3);margin-top:4px;line-height:1.5">${int.description.substring(0,80)}...</div>`:''}
+        <div style="margin-top:8px;display:flex;gap:6px">
+          ${role?`<button class="btn-sm" onclick="interviewPrep(${role.id})">🎯 Prep questions</button>`:''}
+          ${role?`<button class="btn-sm" onclick="companyResearch(${role.id})">🔍 Company brief</button>`:''}
+          <button class="btn-sm dng" onclick="removeInterview('${int.id}')">✕</button>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="countdown" style="color:${isToday?'var(--acc)':isSoon?'var(--yellow)':'var(--t1)'}">${du===0?'Today':du<0?'Past':du}</div>
+        <div class="countdown-label">${du===0?'':du<0?'days ago':'days away'}</div>
+        <span class="int-badge" style="background:${isToday?'rgba(168,224,99,.15)':isSoon?'rgba(245,166,35,.12)':'rgba(100,100,100,.1)'};color:${isToday?'var(--acc)':isSoon?'var(--yellow)':'var(--t2)'};display:inline-block;margin-top:8px">
+          ${isToday?'TODAY':isSoon?'SOON':'UPCOMING'}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateCalBadges(){
+  // Rebuild board to show calendar badges on matched cards
+  render();
+}
+
+function removeInterview(id){
+  interviews=interviews.filter(i=>i.id!==id);
+  renderInterviews();
+}
+
+function addInterview(){
+  const coSel=document.getElementById('int-company-sel');
+  const company=coSel.options[coSel.selectedIndex]?.text||'';
+  const roleId=parseInt(coSel.value)||null;
+  const d=document.getElementById('int-date').value;
+  const t=document.getElementById('int-time').value;
+  if(!d){alert('Please select a date.');return;}
+  const int={
+    id:'manual-'+Date.now(),
+    summary:`${document.getElementById('int-type').value} — ${company}`,
+    company,roleId,
+    role:roles.find(r=>r.id===roleId)?.role||'',
+    start:t?`${d}T${t}:00`:d,
+    link:document.getElementById('int-link').value,
+    description:document.getElementById('int-notes').value,
+    fromCal:false
+  };
+  interviews.push(int);
+  // Auto-advance role to interview
+  const role=roles.find(r=>r.id===roleId);
+  if(role){role.status='interview';role.date=now();}
+  save();render();renderInterviews();closeModal('add-interview-modal');
+}
+
+function populateCompanySelect(){
+  const sel=document.getElementById('int-company-sel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Select company...</option>'+
+    roles.map(r=>`<option value="${r.id}">${r.co} — ${r.role} (${r.market==='dubai'?'🇦🇪':'🇬🇧'})</option>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// INTERVIEW PREP + COMPANY RESEARCH
+// ══════════════════════════════════════════════════════
+async function interviewPrep(id){
+  if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
+  const j=roles.find(x=>x.id===id);if(!j)return;
+  const el=document.getElementById('prep-'+id);
+  if(!el)return;
+  el.innerHTML=`<div class="ld" style="margin-top:8px">Generating interview questions...</div>`;
+  try{
+    const res=await callClaude(`Generate 8 interview questions for this candidate interviewing at ${j.co} for ${j.role}. Mix: 3 behavioural (STAR format), 2 technical/sales methodology, 2 company/market knowledge, 1 motivation. For each question, give a 2-sentence STAR answer guide using facts from the candidate profile. Return JSON only:
+{"questions":[{"q":"question","type":"behavioural|technical|knowledge|motivation","star_guide":"2-sentence guide using candidate's real experience"}]}
+
+Candidate profile:
+${userProfile.substring(0,600)}
+
+Role context: ${j.role} at ${j.co}`,1200);
+    const d=JSON.parse(res.replace(/```json\n?|```\n?/g,'').trim());
+    const TYPE_COLOR={behavioural:'var(--blue)',technical:'var(--purple)',knowledge:'var(--teal)',motivation:'var(--acc)'};
+    el.innerHTML=`<div class="prep-section">
+      <div style="font-size:11px;font-weight:500;color:var(--t1);margin-bottom:8px">🎯 Interview prep — ${j.co}</div>
+      ${(d.questions||[]).map((q,i)=>`<div class="prep-q">
+        <span class="q-num">${i+1}.</span>
+        <span style="color:var(--t1)">${q.q}</span>
+        <span style="background:${TYPE_COLOR[q.type]||'var(--t2)'}18;color:${TYPE_COLOR[q.type]||'var(--t2)'};font-size:9px;padding:1px 5px;border-radius:3px;margin-left:6px">${q.type}</span>
+        <div class="prep-answer">${q.star_guide}</div>
+      </div>`).join('')}
+    </div>`;
+  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:6px">Error: ${e.message}</div>`;}
+}
+
+async function companyResearch(id){
+  if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
+  const j=roles.find(x=>x.id===id);if(!j)return;
+  const el=document.getElementById('research-'+id);
+  if(!el)return;
+  el.innerHTML=`<div class="ld" style="margin-top:8px">Researching ${j.co}...</div>`;
+  try{
+    const res=await callClaude(`Give a concise company research brief for someone interviewing at ${j.co} for ${j.role}. Cover: (1) what they do in one sentence, (2) recent news or funding (last 12 months), (3) ICP/target customers, (4) main competitors, (5) one smart question to ask in the interview that shows genuine insight. Be specific and factual. Format as plain text with clear numbered sections. Max 300 words.`,600);
+    el.innerHTML=`<div class="prep-section" style="margin-top:6px">
+      <div style="font-size:11px;font-weight:500;color:var(--teal);margin-bottom:8px">🔍 ${j.co} — Company brief</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7;white-space:pre-wrap">${res}</div>
+    </div>`;
+  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:6px">Error: ${e.message}</div>`;}
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+function saveApiKey(){
+  const val=document.getElementById('api-key-input').value.trim();
+  if(!val||val.startsWith('•')){document.getElementById('api-status').textContent='No changes.';return;}
+  apiKey=val;localStorage.setItem('rs_apikey',apiKey);
+  document.getElementById('api-key-input').value='••••••••••••';
+  document.getElementById('api-status').textContent='✓ API key saved.';
+  updateApiDot();
+}
+function saveProfile(){
+  userProfile=document.getElementById('profile-input').value;
+  localStorage.setItem('rs_profile',userProfile);
+  document.getElementById('cv-in').value=userProfile.split('\n').slice(2).join('\n');
+  document.getElementById('api-status').textContent='✓ Profile saved.';
+}
+function updateApiDot(){
+  const d=document.getElementById('api-dot');
+  d.classList.toggle('ok',!!apiKey);
+  d.title=apiKey?'AI features active':'Add API key in Settings';
+}
+function exportData(){
+  const data=JSON.stringify({roles,conns,exportedAt:new Date().toISOString()},null,2);
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(data);
+  a.download='rolestack-export-'+now()+'.json';a.click();
+}
+function clearData(){
+  if(!confirm('Reset all data to defaults? This cannot be undone.'))return;
+  ['rs_roles_v3','rs_conns_v3'].forEach(k=>localStorage.removeItem(k));
+  roles=[...SEED_UK,...SEED_DUBAI];conns=[...SEED_CONNS];save();render();
+  alert('Data reset.');
+}
+
+// ══════════════════════════════════════════════════════
+// CLAUDE API
+// ══════════════════════════════════════════════════════
+async function callClaude(prompt,maxTokens=500){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+  });
+  const d=await res.json();
+  if(d.error)throw new Error(d.error.message);
+  return d.content.find(b=>b.type==='text')?.text||'';
+}
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
