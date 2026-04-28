@@ -80,6 +80,14 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500}
 .jnotes{font-size:10px;color:var(--t3);margin-top:5px;line-height:1.5}
 .stale-flag{font-size:9px;color:var(--yellow);margin-top:4px;display:flex;align-items:center;gap:3px}
+
+/* ── Drag and Drop ── */
+.jcard[draggable=true]{cursor:grab}
+.jcard[draggable=true]:active{cursor:grabbing}
+.jcard.dragging{opacity:.4;border:2px dashed var(--acc)}
+.col-body.drag-over{background:rgba(168,224,99,.06);border-radius:var(--r);outline:2px dashed rgba(168,224,99,.3)}
+.col.drag-target .col-h{opacity:.7}
+
 /* ── Right panel ── */
 .rpanel{width:0;background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:.2s;flex-shrink:0}
 .rpanel.on{width:330px}
@@ -866,10 +874,10 @@ function renderBoard(mkt){
     const items=filtered.filter(x=>x.status===col.id);
     return`<div class="col">
       <div class="col-h"><span class="col-n" style="color:${col.c}">${col.l}</span><span class="col-c">${items.length}</span></div>
-      <div class="col-body">${items.map(j=>{
+      <div class="col-body" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event,'${col.id}','${mkt}')">${items.map(j=>{
         const d=daysSince(j.date);
         const stale=d>=14?'stale14':d>=7?'stale7':'';
-        return`<div class="jcard${selRole&&selRole.id===j.id?' sel':''} ${stale}" onclick="openPanel(${j.id},'${mkt}')">
+        return`<div class="jcard${selRole&&selRole.id===j.id?' sel':''} ${stale}" draggable="true" ondragstart="dragStart(event,${j.id},'${mkt}')" onclick="openPanel(${j.id},'${mkt}')">
           <div class="jco">${j.co}</div>
           <div class="jro">${j.role}</div>
           ${j.salary?`<div style="font-size:10px;color:var(--acc);margin-bottom:5px">${j.salary}</div>`:''}
@@ -938,6 +946,7 @@ function openPanel(id,mkt){
       <button class="btn-sm" onclick="window.open('https://www.linkedin.com/jobs/search/?keywords='+encodeURIComponent('${j.co} ${j.role}'),'_blank')">LinkedIn ↗</button>
       <button class="btn-sm" onclick="prefillCV('${j.co.replace(/'/g,"\\'")}','${j.role.replace(/'/g,"\\'")}')">Tailor CV</button>
       <button class="btn-sm" onclick="markFollowedUp(${j.id},'${mkt}')">✓ Followed up</button>
+      <button class="btn-sm" onclick="extractContacts(${j.id})">⊕ Extract contacts</button>
       <button class="btn-sm dng" onclick="deleteRole(${j.id})">Remove</button>
     </div>`;
   renderBoard(mkt);
@@ -1876,6 +1885,104 @@ async function callClaude(prompt,maxTokens=500){
   return d.content.find(b=>b.type==='text')?.text||'';
 }
 
+
+
+// ══════════════════════════════════════════════════════
+// DRAG AND DROP
+// ══════════════════════════════════════════════════════
+let dragId = null, dragMkt = null;
+
+function dragStart(e, id, mkt) {
+  dragId = id;
+  dragMkt = mkt;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    const el = e.target;
+    if (el) el.classList.add('dragging');
+  }, 0);
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const colBody = e.currentTarget;
+  colBody.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e, newStatus, mkt) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragId) return;
+  const role = roles.find(r => r.id === dragId);
+  if (role && role.status !== newStatus) {
+    role.status = newStatus;
+    role.date = now();
+    save();
+    render();
+    renderSidebar();
+    showToast('✅ ' + role.co + ' moved to ' + newStatus.charAt(0).toUpperCase() + newStatus.slice(1));
+    // If moved to interview, offer to add to interviews
+    if (newStatus === 'interview') {
+      populateCompanySelect();
+    }
+  }
+  dragId = null;
+  dragMkt = null;
+}
+
+// ══════════════════════════════════════════════════════
+// AUTO-EXTRACT CONTACTS FROM NOTES
+// ══════════════════════════════════════════════════════
+function extractContacts(id) {
+  const j = roles.find(r => r.id === id);
+  if (!j || !j.notes) {
+    showToast('⚠ No notes found to extract contacts from');
+    return;
+  }
+
+  // Parse names from notes — look for capitalised word pairs (First Last pattern)
+  const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
+  const found = [...new Set(j.notes.match(nameRegex) || [])];
+  
+  // Filter out known non-names
+  const stopWords = new Set(['Active Conversation', 'Awaiting Reply', 'Surround Sound', 'Golden Visa', 
+    'Skilled Worker', 'GTM OS', 'LSE AI', 'InMail Sent', 'Direct Outreach', 'Phone Discussion']);
+  const names = found.filter(n => !stopWords.has(n) && n.split(' ').length <= 3);
+
+  if (!names.length) {
+    showToast('⚠ No contact names found in notes');
+    return;
+  }
+
+  let added = 0;
+  names.forEach(name => {
+    // Skip if already in connections
+    if (conns.find(c => c.name.toLowerCase() === name.toLowerCase())) return;
+    conns.push({
+      id: Date.now() + Math.random(),
+      name,
+      co: j.co,
+      title: '',
+      status: 'pending',
+      note: `Extracted from ${j.co} notes`,
+      seq: [0,0,0,0,0]
+    });
+    added++;
+  });
+
+  if (added > 0) {
+    save();
+    renderConns();
+    renderSidebar();
+    showToast('✅ Added ' + added + ' contact' + (added > 1 ? 's' : '') + ' from ' + j.co + ' to Connections');
+  } else {
+    showToast('ℹ All contacts already in Connections CRM');
+  }
+}
 
 // ══════════════════════════════════════════════════════
 // URL-BASED QUICK ADD
