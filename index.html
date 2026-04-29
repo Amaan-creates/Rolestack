@@ -558,9 +558,34 @@ a{color:var(--acc);text-decoration:none}
             <button class="savebtn ghost" onclick="signOut()">Sign out</button>
           </div>
           <div class="ss">
-            <h3>API Keys</h3>
-            <p><strong>Anthropic API Key</strong> — Required for AI CVs, ghostwriting, and interview prep. Stored securely.</p>
-            <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+            <h3>🤖 AI Provider</h3>
+            <p style="font-size:11px;color:var(--t2);margin-bottom:10px">Choose your AI provider. All features (Role, Stack, CV Studio, Interview Prep) use this.</p>
+            <div style="display:flex;gap:6px;margin-bottom:12px">
+              <button onclick="setProvider('claude')" id="prov-claude" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--acc);background:rgba(168,224,99,.1);color:var(--acc);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;font-weight:600">Claude</button>
+              <button onclick="setProvider('openai')" id="prov-openai" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--bd2);background:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer">ChatGPT</button>
+              <button onclick="setProvider('gemini')" id="prov-gemini" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--bd2);background:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer">Gemini</button>
+            </div>
+            <div id="key-claude-row">
+              <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>Claude API Key</strong> — <a href="https://console.anthropic.com" target="_blank" style="color:var(--acc)">console.anthropic.com</a></p>
+              <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+            </div>
+            <div id="key-openai-row" style="display:none">
+              <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>OpenAI API Key</strong> — <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--acc)">platform.openai.com</a></p>
+              <input type="password" id="openai-key-input" placeholder="sk-...">
+            </div>
+            <div id="key-gemini-row" style="display:none">
+              <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>Gemini API Key</strong> — <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--acc)">aistudio.google.com</a></p>
+              <input type="password" id="gemini-key-input" placeholder="AIza...">
+            </div>
+            <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">
+              <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>🌍 Markets & Job Boards</strong></p>
+              <div style="display:flex;gap:8px">
+                <button class="savebtn" onclick="openMarketsModal()">⊕ My Markets</button>
+                <button class="savebtn" style="background:var(--s3);border:1px solid var(--bd2);color:var(--t1)" onclick="openBoardsModal()">📋 My Boards</button>
+              </div>
+            </div>
+            <p style="margin-top:12px"><strong>Anthropic API Key</strong> — Required for AI CVs, ghostwriting, and interview prep. Stored securely.</p>
+            <input type="password" id="api-key-input-legacy" placeholder="sk-ant-api03-..." style="display:none">
             
             <p style="margin-top:12px"><strong>Adzuna App ID & Key</strong> — Required for live job search.</p>
             <input type="text" id="adzuna-id-input" placeholder="Adzuna App ID">
@@ -1518,15 +1543,72 @@ async function addAdzunaJob(co,role,salary,market,url){
 // ══════════════════════════════════════════════════════
 // AI FEATURES
 // ══════════════════════════════════════════════════════
-async function callClaude(prompt,maxTokens=500){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+// ══════════════════════════════════════════════════════
+// MULTI-LLM AI ROUTER
+// ══════════════════════════════════════════════════════
+let aiProvider = 'claude'; // claude | openai | gemini
+let openaiKey = '', geminiKey = '';
+
+async function callAI(prompt, maxTokens=500) {
+  const provider = localStorage.getItem('rs_ai_provider') || 'claude';
+  if (provider === 'openai') return callOpenAI(prompt, maxTokens);
+  if (provider === 'gemini') return callGemini(prompt, maxTokens);
+  return callAI(prompt, maxTokens);
+}
+
+async function callAI(prompt, maxTokens=500) {
+  const key = apiKey || localStorage.getItem('rs_apikey') || '';
+  if (!key) throw new Error('No Claude API key. Add it in Settings.');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
   });
-  const d=await res.json();
-  if(d.error)throw new Error(d.error.message);
-  return d.content.find(b=>b.type==='text')?.text||'';
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.content?.find(b => b.type === 'text')?.text || '';
+}
+
+async function callOpenAI(prompt, maxTokens=500) {
+  const key = openaiKey || localStorage.getItem('rs_openai_key') || '';
+  if (!key) throw new Error('No OpenAI API key. Add it in Settings.');
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.choices?.[0]?.message?.content || '';
+}
+
+async function callGemini(prompt, maxTokens=500) {
+  const key = geminiKey || localStorage.getItem('rs_gemini_key') || '';
+  if (!key) throw new Error('No Gemini API key. Add it in Settings.');
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: maxTokens }
+    })
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 async function ghostwriter(id){
   if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
@@ -1534,7 +1616,7 @@ async function ghostwriter(id){
   const el=document.getElementById('gw-'+id);
   el.innerHTML=`<div class="ld">Writing outreach...</div>`;
   try{
-    const res=await callClaude(`Write a 270-char LinkedIn outreach from Amaan Aslam to a recruiter/hiring manager at ${j.co} about the ${j.role} role. His profile: ${userProfile.substring(0,400)}. Warm, direct, peer-register. Max 300 chars.`,250);
+    const res=await callAI(`Write a 270-char LinkedIn outreach from Amaan Aslam to a recruiter/hiring manager at ${j.co} about the ${j.role} role. His profile: ${userProfile.substring(0,400)}. Warm, direct, peer-register. Max 300 chars.`,250);
     el.innerHTML=`<div class="ai-out">${sanitize(res)}</div><button class="cpbtn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(()=>this.textContent='Copied ✓')">Copy</button>`;
   }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
 }
@@ -1544,7 +1626,7 @@ async function interviewPrep(id){
   const el=document.getElementById('prep-'+id);if(!el)return;
   el.innerHTML=`<div class="ld" style="margin-top:8px">Generating questions...</div>`;
   try{
-    const res=await callClaude(`Generate 8 interview questions for Amaan Aslam interviewing at ${j.co} for ${j.role}. Mix: 3 behavioural (STAR), 2 technical/sales methodology, 2 company knowledge, 1 motivation. For each, give a 2-sentence STAR guide using his real experience. JSON only: {"questions":[{"q":"question","type":"behavioural|technical|knowledge|motivation","star_guide":"guide"}]}\n\nProfile:\n${userProfile.substring(0,600)}`,1200);
+    const res=await callAI(`Generate 8 interview questions for Amaan Aslam interviewing at ${j.co} for ${j.role}. Mix: 3 behavioural (STAR), 2 technical/sales methodology, 2 company knowledge, 1 motivation. For each, give a 2-sentence STAR guide using his real experience. JSON only: {"questions":[{"q":"question","type":"behavioural|technical|knowledge|motivation","star_guide":"guide"}]}\n\nProfile:\n${userProfile.substring(0,600)}`,1200);
     const d=JSON.parse(res.replace(/\`\`\`json\n?|\`\`\`\n?/g,'').trim());
     const TC={behavioural:'var(--blue)',technical:'var(--purple)',knowledge:'var(--teal)',motivation:'var(--acc)'};
     el.innerHTML=`<div class="prep-section"><div style="font-size:11px;font-weight:500;color:var(--t1);margin-bottom:8px">🎯 ${sanitize(j.co)} — Interview Prep</div>${(d.questions||[]).map((q,i)=>`<div class="prep-q"><span style="color:var(--acc);font-weight:600;margin-right:6px">${i+1}.</span><span>${sanitize(q.q)}</span><span style="background:${TC[q.type]||'var(--t2)'}18;color:${TC[q.type]||'var(--t2)'};font-size:9px;padding:1px 5px;border-radius:3px;margin-left:6px">${sanitize(q.type)}</span><div class="prep-answer">${sanitize(q.star_guide)}</div></div>`).join('')}</div>`;
@@ -1556,7 +1638,7 @@ async function companyResearch(id){
   const el=document.getElementById('research-'+id);if(!el)return;
   el.innerHTML=`<div class="ld" style="margin-top:8px">Researching ${j.co}...</div>`;
   try{
-    const res=await callClaude(`Company research brief for someone interviewing at ${j.co} for ${j.role}. Cover: (1) what they do, (2) recent news/funding, (3) ICP/customers, (4) competitors, (5) one sharp question to ask. Factual, specific, max 300 words.`,600);
+    const res=await callAI(`Company research brief for someone interviewing at ${j.co} for ${j.role}. Cover: (1) what they do, (2) recent news/funding, (3) ICP/customers, (4) competitors, (5) one sharp question to ask. Factual, specific, max 300 words.`,600);
     el.innerHTML=`<div class="prep-section" style="margin-top:6px"><div style="font-size:11px;font-weight:500;color:var(--teal);margin-bottom:8px">🔍 ${sanitize(j.co)} — Company Brief</div><div style="font-size:12px;color:var(--t2);line-height:1.7;white-space:pre-wrap">${sanitize(res)}</div></div>`;
   }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:6px">Error: ${e.message}</div>`;}
 }
@@ -1565,7 +1647,7 @@ async function scoreFit(){
   const jd=document.getElementById('fit-jd').value.trim();if(!jd)return;
   document.getElementById('fit-result').innerHTML=`<div class="ld">Scoring...</div>`;
   try{
-    const res=await callClaude(`Score fit for this candidate vs role. JSON only: {"score":1-10,"verdict":"GO|MAYBE|SKIP","reasons":["reason1","reason2","reason3"],"gaps":["gap1"],"salary_est":"estimate"}\n\nCandidate:\n${userProfile.substring(0,500)}\n\nJD:\n${jd}`,400);
+    const res=await callAI(`Score fit for this candidate vs role. JSON only: {"score":1-10,"verdict":"GO|MAYBE|SKIP","reasons":["reason1","reason2","reason3"],"gaps":["gap1"],"salary_est":"estimate"}\n\nCandidate:\n${userProfile.substring(0,500)}\n\nJD:\n${jd}`,400);
     const d=JSON.parse(res.replace(/\`\`\`json\n?|\`\`\`\n?/g,'').trim());
     const vc={GO:'var(--green)',MAYBE:'var(--yellow)',SKIP:'var(--red)'}[d.verdict]||'var(--t2)';
     document.getElementById('fit-result').innerHTML=`<div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:${vc}">${d.score}/10</span><span style="font-weight:700;color:${vc}">${d.verdict}</span>${d.salary_est?`<span style="color:var(--acc);font-size:12px">${sanitize(d.salary_est)}</span>`:''}</div>${(d.reasons||[]).map(r=>`<div style="font-size:11px;color:var(--t1);margin-bottom:3px">✓ ${sanitize(r)}</div>`).join('')}${d.gaps?.length?`<div style="font-size:11px;color:var(--t2);margin-top:8px;margin-bottom:4px">Gaps</div>${d.gaps.map(g=>`<div style="font-size:11px;color:var(--red)">✗ ${sanitize(g)}</div>`).join('')}`:''}</div>`;
@@ -1583,7 +1665,7 @@ async function generateCV(){
   const btn=document.getElementById('gen-btn');btn.disabled=true;btn.textContent='Generating...';
   document.getElementById('cv-left-output').innerHTML=`<div class="ld">Tailoring CV to JD...</div>`;
   try{
-    const raw=await callClaude(`Expert CV writer. Tailor CV to JD. Output ONLY valid JSON:\n\nJD:\n${jd}\n\nCV:\n${cv}\n\nReturn: {"name":"","contact":"","summary":"2-3 sentence summary","experience":[{"title":"","company":"","dates":"","bullets":["bullet1"]}],"education":[{"degree":"","institution":"","dates":"","note":""}],"skills":["skill1"],"ats_score":78,"keywords_matched":["kw1"],"keywords_missing":["kw1"]}\n\nRules: ONLY real info from CV, mirror JD language, quantified bullets, ATS score 0-100`,2000);
+    const raw=await callAI(`Expert CV writer. Tailor CV to JD. Output ONLY valid JSON:\n\nJD:\n${jd}\n\nCV:\n${cv}\n\nReturn: {"name":"","contact":"","summary":"2-3 sentence summary","experience":[{"title":"","company":"","dates":"","bullets":["bullet1"]}],"education":[{"degree":"","institution":"","dates":"","note":""}],"skills":["skill1"],"ats_score":78,"keywords_matched":["kw1"],"keywords_missing":["kw1"]}\n\nRules: ONLY real info from CV, mirror JD language, quantified bullets, ATS score 0-100`,2000);
     cvData=JSON.parse(raw.replace(/\`\`\`json\n?|\`\`\`\n?/g,'').trim());
     cvRawText=buildCVText(cvData);
     renderCVPreview(cvData);
@@ -1662,13 +1744,13 @@ async function draftCoverLetter(){
   if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
   const jd=document.getElementById('jd-in').value.trim();if(!jd){alert('Paste JD first.');return;}
   document.getElementById('cv-left-output').innerHTML=`<div class="ld">Drafting cover letter...</div>`;
-  try{const res=await callClaude(`Write a 3-paragraph cover letter. Confident, direct, references specific company details. Never use: leverage, synergy, passionate, spearheaded, dynamic.\n\nCandidate:\n${userProfile}\n\nJD:\n${jd}`,700);document.getElementById('cv-left-output').innerHTML=`<div class="ai-out" style="max-height:none">${sanitize(res)}</div><button class="cpbtn" style="margin-top:6px" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(()=>this.textContent='Copied ✓')">Copy</button>`;}catch(e){document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
+  try{const res=await callAI(`Write a 3-paragraph cover letter. Confident, direct, references specific company details. Never use: leverage, synergy, passionate, spearheaded, dynamic.\n\nCandidate:\n${userProfile}\n\nJD:\n${jd}`,700);document.getElementById('cv-left-output').innerHTML=`<div class="ai-out" style="max-height:none">${sanitize(res)}</div><button class="cpbtn" style="margin-top:6px" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(()=>this.textContent='Copied ✓')">Copy</button>`;}catch(e){document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
 }
 async function draftOutreach(){
   if(!apiKey){alert('Add API key in Settings.');showView('settings');return;}
   const jd=document.getElementById('jd-in').value.trim();if(!jd){alert('Paste JD first.');return;}
   document.getElementById('cv-left-output').innerHTML=`<div class="ld">Drafting outreach...</div>`;
-  try{const res=await callClaude(`Write a 270-char LinkedIn connection request. Warm, direct, peer-register. Under 300 chars.\n\nCandidate:\n${userProfile.substring(0,400)}\n\nRole:\n${jd.substring(0,400)}`,200);document.getElementById('cv-left-output').innerHTML=`<div class="ai-out">${sanitize(res)}</div><div style="font-size:10px;color:var(--t2);margin-top:4px">${res.length} chars</div><button class="cpbtn" style="margin-top:4px" onclick="navigator.clipboard.writeText(\`${res.replace(/\`/g,'\\`')}\`).then(()=>this.textContent='Copied ✓')">Copy</button>`;}catch(e){document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
+  try{const res=await callAI(`Write a 270-char LinkedIn connection request. Warm, direct, peer-register. Under 300 chars.\n\nCandidate:\n${userProfile.substring(0,400)}\n\nRole:\n${jd.substring(0,400)}`,200);document.getElementById('cv-left-output').innerHTML=`<div class="ai-out">${sanitize(res)}</div><div style="font-size:10px;color:var(--t2);margin-top:4px">${res.length} chars</div><button class="cpbtn" style="margin-top:4px" onclick="navigator.clipboard.writeText(\`${res.replace(/\`/g,'\\`')}\`).then(()=>this.textContent='Copied ✓')">Copy</button>`;}catch(e){document.getElementById('cv-left-output').innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;}
 }
 
 // ══════════════════════════════════════════════════════
@@ -1683,7 +1765,7 @@ async function runDiscover(){
   const sectorDesc={saas:'B2B SaaS',fintech:'fintech',mobility:'mobility or transport technology',ai:'AI or machine learning',any:'any technology sector'}[sector];
   const prompt=`Find 8-10 realistic ${roleDesc} roles in ${marketDesc} at ${sectorDesc} companies for Amaan Aslam (LSE MSc AI, £1.4M F500 pipeline, SaaS founder, Dubai Golden Visa). JSON only:\n{"roles":[{"company":"","role":"","market":"uk or dubai","location":"","salary_est":"","fit_score":8,"fit_reason":"","sponsor":"YES|NO|UNKNOWN","apply_url":"","why_apply":""}],"scan_summary":""}\nDo NOT include: Snyk,Pigment,Anaplan,HiBob,Loctax,Sylvera,Genie AI,Primer,Hyperexponential,Rolestack`;
   try{
-    const raw=await callClaude(prompt,2000);
+    const raw=await callAI(prompt,2000);
     const data=JSON.parse(raw.replace(/\`\`\`json\n?|\`\`\`\n?/g,'').trim());
     const n=new Date().toISOString();
     const newResults=(data.roles||[]).map((r,i)=>({...r,id:'disc-'+Date.now()+'-'+i,scanned_at:n,added:false,isNew:true}));
@@ -1871,10 +1953,463 @@ function showToast(msg){
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
 }
 
+
+
+// ══════════════════════════════════════════════════════
+// MULTI-LLM SETTINGS
+// ══════════════════════════════════════════════════════
+function setProvider(p) {
+  localStorage.setItem('rs_ai_provider', p);
+  ['claude','openai','gemini'].forEach(name => {
+    const btn = document.getElementById('prov-' + name);
+    const row = document.getElementById('key-' + name + '-row');
+    if (!btn) return;
+    const isActive = name === p;
+    btn.style.borderColor = isActive ? 'var(--acc)' : 'var(--bd2)';
+    btn.style.background = isActive ? 'rgba(168,224,99,.1)' : 'none';
+    btn.style.color = isActive ? 'var(--acc)' : 'var(--t2)';
+    btn.style.fontWeight = isActive ? '600' : '400';
+    if (row) row.style.display = isActive ? 'block' : 'none';
+  });
+}
+
+function saveAllKeys() {
+  const claudeKey = document.getElementById('api-key-input')?.value?.trim();
+  const openaiKeyEl = document.getElementById('openai-key-input')?.value?.trim();
+  const geminiKeyEl = document.getElementById('gemini-key-input')?.value?.trim();
+  
+  if (claudeKey && !claudeKey.startsWith('•')) { apiKey = claudeKey; localStorage.setItem('rs_apikey', claudeKey); }
+  if (openaiKeyEl && !openaiKeyEl.startsWith('•')) { openaiKey = openaiKeyEl; localStorage.setItem('rs_openai_key', openaiKeyEl); }
+  if (geminiKeyEl && !geminiKeyEl.startsWith('•')) { geminiKey = geminiKeyEl; localStorage.setItem('rs_gemini_key', geminiKeyEl); }
+  
+  updateApiDot();
+  document.getElementById('api-status').textContent = '✓ Keys saved.';
+  showToast('✅ API keys saved');
+}
+
+function saveAdzunaKeys() {
+  const id = document.getElementById('adzuna-id-input')?.value?.trim();
+  const key = document.getElementById('adzuna-key-input')?.value?.trim();
+  if (id) { adzunaAppId = id; localStorage.setItem('rs_adzuna_id', id); }
+  if (key) { adzunaAppKey = key; localStorage.setItem('rs_adzuna_key', key); }
+  showToast('✅ Adzuna keys saved');
+}
+
+function loadAllKeys() {
+  apiKey = localStorage.getItem('rs_apikey') || '';
+  openaiKey = localStorage.getItem('rs_openai_key') || '';
+  geminiKey = localStorage.getItem('rs_gemini_key') || '';
+  adzunaAppId = localStorage.getItem('rs_adzuna_id') || '5d4ec102';
+  adzunaAppKey = localStorage.getItem('rs_adzuna_key') || 'e4f0c72bd9be149c189f5d34c9267b52';
+  const provider = localStorage.getItem('rs_ai_provider') || 'claude';
+  setTimeout(() => setProvider(provider), 100);
+}
+
+// ══════════════════════════════════════════════════════
+// ROLE + STACK — DUAL AI CHAT
+// ══════════════════════════════════════════════════════
+let chatMode = 'role';
+let chatHistory = [];
+let customMarkets = JSON.parse(localStorage.getItem('rs_markets') || '[]');
+let customBoards = JSON.parse(localStorage.getItem('rs_custom_boards') || '[]');
+
+const BOARD_LIBRARY = [
+  {n:'LinkedIn',i:'💼',market:'Global',u:'https://www.linkedin.com/jobs/search/?keywords={query}&location={location}'},
+  {n:'Indeed',i:'🔍',market:'Global',u:'https://www.indeed.com/jobs?q={query}&l={location}'},
+  {n:'Glassdoor',i:'🏢',market:'Global',u:'https://www.glassdoor.com/Job/jobs.htm?sc.keyword={query}&locT=C&locKeyword={location}'},
+  {n:'Wellfound',i:'😇',market:'Global',u:'https://wellfound.com/jobs?q={query}&l={location}'},
+  {n:'StepStone',i:'🇩🇪',market:'Germany',u:'https://www.stepstone.de/jobs/{query}/{location}'},
+  {n:'XING',i:'🔗',market:'Germany',u:'https://www.xing.com/jobs/search?keywords={query}&location={location}'},
+  {n:'Bayt',i:'🌐',market:'MENA',u:'https://www.bayt.com/en/international/jobs/{query}-jobs/?soly={location}'},
+  {n:'GulfTalent',i:'⭐',market:'MENA',u:'https://www.gulftalent.com/jobs?q={query}&location={location}'},
+  {n:'Naukri',i:'🇮🇳',market:'India',u:'https://www.naukri.com/{query}-jobs-in-{location}'},
+  {n:'JobStreet',i:'🇸🇬',market:'SEA',u:'https://www.jobstreet.com/en/job-search/{query}-jobs-in-{location}/'},
+  {n:'Seek',i:'🇦🇺',market:'Australia',u:'https://www.seek.com.au/{query}-jobs/in-{location}'},
+  {n:'Otta',i:'🎯',market:'UK',u:'https://otta.com/jobs?q={query}'},
+];
+
+const ROLE_PROMPTS = [
+  'Find Enterprise AE roles matching my profile',
+  'What roles should I apply for this week?',
+  'Find roles in my target markets',
+  'Search for roles at AI companies',
+];
+
+const STACK_PROMPTS = [
+  'What should I focus on this week?',
+  'Which roles are going stale?',
+  'Draft a follow-up for my latest application',
+  'Prep me for my next interview',
+];
+
+function toggleRSChat() {
+  const panel = document.getElementById('rs-chat-panel');
+  const fab = document.getElementById('rs-fab');
+  const isOpen = panel.style.display === 'flex';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  fab.style.display = isOpen ? 'flex' : 'none';
+  if (!isOpen) {
+    renderQuickPrompts();
+    if (chatHistory.length === 0) addChatMsg('system', getRoleStackGreeting());
+    document.getElementById('rs-input').focus();
+  }
+}
+
+function getRoleStackGreeting() {
+  const total = roles.length;
+  const stale = roles.filter(r => {
+    if (!r.role_date) return false;
+    const days = Math.floor((Date.now() - new Date(r.role_date)) / 86400000);
+    return days >= 7 && ['waiting','active','building'].includes(r.status);
+  }).length;
+  const interviews = roles.filter(r => r.status === 'interview').length;
+  
+  return `Pipeline: **${total} roles tracked**, ${stale} need follow-up${interviews > 0 ? `, ${interviews} in interview stage` : ''}.
+
+I'm ready. Use **Role** to find new opportunities or **Stack** to execute on your current pipeline. What do you need?`;
+}
+
+function setChatMode(mode) {
+  chatMode = mode;
+  document.getElementById('mode-role').style.borderBottomColor = mode === 'role' ? 'var(--acc)' : 'transparent';
+  document.getElementById('mode-role').style.color = mode === 'role' ? 'var(--acc)' : 'var(--t2)';
+  document.getElementById('mode-role').style.background = mode === 'role' ? 'rgba(168,224,99,.08)' : 'none';
+  document.getElementById('mode-stack').style.borderBottomColor = mode === 'stack' ? '#4f8ef7' : 'transparent';
+  document.getElementById('mode-stack').style.color = mode === 'stack' ? '#4f8ef7' : 'var(--t2)';
+  document.getElementById('mode-stack').style.background = mode === 'stack' ? 'rgba(79,142,247,.08)' : 'none';
+  renderQuickPrompts();
+}
+
+function renderQuickPrompts() {
+  const prompts = chatMode === 'role' ? ROLE_PROMPTS : STACK_PROMPTS;
+  const color = chatMode === 'role' ? 'var(--acc)' : '#4f8ef7';
+  document.getElementById('rs-quick-prompts').innerHTML = prompts.map(p =>
+    `<button onclick="jjQuick('${p.replace(/'/g,"\'")}') " style="padding:3px 8px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;color:${color};font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap">${p}</button>`
+  ).join('');
+}
+
+function jjQuick(text) {
+  document.getElementById('rs-input').value = text;
+  sendRSChat();
+}
+
+function addChatMsg(role, text) {
+  const msgs = document.getElementById('rs-messages');
+  const isUser = role === 'user';
+  const isRole = role === 'role';
+  
+  const color = isRole ? 'var(--acc)' : isUser ? 'var(--t1)' : '#4f8ef7';
+  const bg = isUser ? 'var(--s3)' : 'var(--bg)';
+  const label = isUser ? '' : isRole ? '🔍 Role' : '⚡ Stack';
+  const align = isUser ? 'flex-end' : 'flex-start';
+  
+  const div = document.createElement('div');
+  div.style.cssText = `display:flex;flex-direction:column;align-items:${align};gap:2px`;
+  
+  if (label) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = `font-size:9px;color:${color};font-weight:600;letter-spacing:.5px;padding:0 4px`;
+    lbl.textContent = label;
+    div.appendChild(lbl);
+  }
+  
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `background:${bg};border:1px solid var(--bd);border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.7;color:${isUser?'var(--t1)':'var(--t2)'};max-width:90%;white-space:pre-wrap`;
+  bubble.textContent = text.replace(/\*\*(.*?)\*\*/g, '$1');
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendRSChat() {
+  const input = document.getElementById('rs-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  
+  addChatMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  
+  // Auto-detect mode from message
+  const isDiscovery = /find|search|look for|discover|what roles|show me roles/i.test(text);
+  const isExecution = /draft|write|move|update|follow.up|prep|priorit|stale|focus/i.test(text);
+  if (isDiscovery && chatMode !== 'role') setChatMode('role');
+  if (isExecution && chatMode !== 'stack') setChatMode('stack');
+  
+  const agentName = chatMode === 'role' ? 'role' : 'stack';
+  addChatMsg('system_typing', '...');
+  
+  try {
+    const pipelineSummary = roles.slice(0, 15).map(r => 
+      `${r.co} (${r.role}) — ${r.status} — ${r.market || 'uk'}`
+    ).join('
+');
+    
+    const systemPrompt = chatMode === 'role'
+      ? `You are Role, an AI job search scout inside Rolestack. Your job is to find new opportunities.
+         When asked to find roles, suggest 5-8 specific real companies and roles matching the user's profile.
+         Format suggestions clearly. Be specific about company names, role titles, salary estimates.
+         User profile: ${userProfile.substring(0, 500)}
+         Current pipeline (${roles.length} roles): ${pipelineSummary}
+         Do NOT suggest companies already in their pipeline.`
+      : `You are Stack, an AI execution engine inside Rolestack. You help users take action on their job search.
+         You can: draft messages, prioritise pipeline, identify stale roles, prep for interviews.
+         Be direct and actionable. Always give something the user can immediately use.
+         User profile: ${userProfile.substring(0, 500)}
+         Current pipeline (${roles.length} roles): ${pipelineSummary}
+         Stale roles (7+ days): ${roles.filter(r => {
+           const d = Math.floor((Date.now()-new Date(r.role_date||''))/86400000);
+           return d >= 7 && ['waiting','active','building'].includes(r.status);
+         }).map(r => r.co).join(', ') || 'none'}`;
+    
+    // Remove typing indicator
+    const msgs = document.getElementById('rs-messages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    
+    const reply = await callAI(`${systemPrompt}
+
+User: ${text}`, 800);
+    addChatMsg(agentName, reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    
+  } catch(e) {
+    const msgs = document.getElementById('rs-messages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    addChatMsg('stack', `Error: ${e.message}. Make sure your AI key is set in Settings.`);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CUSTOM MARKETS
+// ══════════════════════════════════════════════════════
+function openMarketsModal() {
+  renderMarketsList();
+  openModal('markets-modal');
+}
+
+function renderMarketsList() {
+  const el = document.getElementById('markets-list');
+  if (!customMarkets.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom markets yet. Your defaults (UK + Dubai) always appear.</div>';
+    return;
+  }
+  el.innerHTML = customMarkets.map((m, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s3);border-radius:6px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${m.flag}</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--t1)">${m.name}</div>
+          <div style="font-size:10px;color:var(--t3)">${m.city} · ${m.currency} · ${m.visa === 'no' ? '✓ Right to work' : m.visa === 'yes' ? '⚠ Needs visa' : '? Depends'}</div>
+        </div>
+      </div>
+      <button onclick="removeMarket(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px">✕</button>
+    </div>`).join('');
+}
+
+function addMarket() {
+  const name = document.getElementById('mkt-name').value.trim();
+  const city = document.getElementById('mkt-city').value.trim();
+  if (!name || !city) { alert('Name and city are required.'); return; }
+  customMarkets.push({
+    name, flag: document.getElementById('mkt-flag').value || '🌍',
+    city, currency: document.getElementById('mkt-currency').value || '',
+    visa: document.getElementById('mkt-visa').value,
+    color: document.getElementById('mkt-color').value
+  });
+  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
+  ['mkt-name','mkt-flag','mkt-city','mkt-currency'].forEach(id => document.getElementById(id).value = '');
+  renderMarketsList();
+  showToast('✅ Market added: ' + name);
+}
+
+function removeMarket(i) {
+  customMarkets.splice(i, 1);
+  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
+  renderMarketsList();
+}
+
+// ══════════════════════════════════════════════════════
+// CUSTOM JOB BOARDS
+// ══════════════════════════════════════════════════════
+function openBoardsModal() {
+  renderBoardLibrary();
+  renderCustomBoardsList();
+  openModal('boards-modal');
+}
+
+function renderBoardLibrary() {
+  document.getElementById('board-library-chips').innerHTML = BOARD_LIBRARY.map(b => `
+    <button onclick="addFromLibrary(${BOARD_LIBRARY.indexOf(b)})" 
+      style="padding:4px 10px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">
+      ${b.i} ${b.n} <span style="color:var(--t3);font-size:9px">${b.market}</span>
+    </button>`).join('');
+}
+
+function addFromLibrary(i) {
+  const b = BOARD_LIBRARY[i];
+  if (customBoards.find(cb => cb.name === b.n)) { showToast('Already added'); return; }
+  customBoards.push({ name: b.n, icon: b.i, market: b.market, desc: '', url: b.u });
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  renderCustomBoardsList();
+  showToast('✅ Added: ' + b.n);
+}
+
+function renderCustomBoardsList() {
+  const el = document.getElementById('custom-boards-list');
+  if (!customBoards.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom boards yet. Add from the library or create your own below.</div>';
+    return;
+  }
+  el.innerHTML = customBoards.map((b, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--s3);border-radius:6px;margin-bottom:5px">
+      <div style="font-size:12px;color:var(--t1)">${b.icon} ${b.name} <span style="color:var(--t3);font-size:10px">${b.market}</span></div>
+      <button onclick="removeBoard(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function addCustomBoard() {
+  const name = document.getElementById('board-name').value.trim();
+  const url = document.getElementById('board-url').value.trim();
+  if (!name || !url) { alert('Name and URL are required.'); return; }
+  customBoards.push({
+    name, icon: document.getElementById('board-icon').value || '🔍',
+    market: document.getElementById('board-market').value || 'Global',
+    desc: document.getElementById('board-desc').value,
+    url
+  });
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  ['board-name','board-icon','board-market','board-desc','board-url'].forEach(id => document.getElementById(id).value = '');
+  renderCustomBoardsList();
+  showToast('✅ Board added: ' + name);
+}
+
+function removeBoard(i) {
+  customBoards.splice(i, 1);
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  renderCustomBoardsList();
+}
+
 // ══════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════
+loadAllKeys();
 checkSession();
+
+// Session persistence — re-render on auth state change
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session?.user) {
+    if (!currentUser || currentUser.id !== session.user.id) {
+      await onLogin(session.user);
+    }
+  } else if (event === 'SIGNED_OUT') {
+    currentUser = null;
+    roles = []; conns = []; interviews = [];
+    showLanding();
+  }
+});
 </script>
+
+<!-- ── Role & Stack Chat Panel ── -->
+<div id="rs-chat-panel" style="position:fixed;bottom:24px;right:24px;z-index:500;display:none;flex-direction:column;width:380px;max-height:580px;background:var(--s2);border:1px solid var(--bd2);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.7);font-family:'DM Mono',monospace;overflow:hidden">
+  <!-- Header -->
+  <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--s1)">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px">
+          <span style="color:var(--acc)">Role</span>
+          <span style="color:var(--t3);margin:0 4px">+</span>
+          <span style="color:#4f8ef7">Stack</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3)">Your dual AI job search engine</div>
+      </div>
+    </div>
+    <button onclick="toggleRSChat()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;padding:2px 6px">✕</button>
+  </div>
+  <!-- Mode toggle -->
+  <div style="display:flex;border-bottom:1px solid var(--bd);flex-shrink:0">
+    <button id="mode-role" onclick="setChatMode('role')" style="flex:1;padding:9px;background:rgba(168,224,99,.08);border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer">
+      🔍 Role — Find
+    </button>
+    <button id="mode-stack" onclick="setChatMode('stack')" style="flex:1;padding:9px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer">
+      ⚡ Stack — Execute
+    </button>
+  </div>
+  <!-- Messages -->
+  <div id="rs-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:220px;max-height:360px"></div>
+  <!-- Quick prompts -->
+  <div id="rs-quick-prompts" style="padding:8px 10px;display:flex;gap:4px;flex-wrap:wrap;border-top:1px solid var(--bd);background:var(--s1)"></div>
+  <!-- Input -->
+  <div style="padding:10px;border-top:1px solid var(--bd);display:flex;gap:6px;flex-shrink:0">
+    <input id="rs-input" placeholder="Ask Role or Stack..." style="flex:1;background:var(--s3);border:1px solid var(--bd2);border-radius:6px;padding:8px 11px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace" onkeydown="if(event.key==='Enter')sendRSChat()">
+    <button onclick="sendRSChat()" style="padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">↑</button>
+  </div>
+</div>
+
+<!-- ── Role+Stack FAB Button ── -->
+<button id="rs-fab" onclick="toggleRSChat()" style="position:fixed;bottom:24px;right:24px;z-index:499;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#4f8ef7);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:20px;display:flex;align-items:center;justify-content:center;transition:.2s" title="Ask Role or Stack">⚡</button>
+
+<!-- ── Custom Markets Modal ── -->
+<div class="overlay" id="markets-modal">
+  <div class="modal" style="width:480px">
+    <div class="modal-title">🌍 My Markets</div>
+    <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.6">Add the job markets you are targeting. Each market gets its own Kanban board, currency, and job search preferences.</p>
+    <div id="markets-list" style="margin-bottom:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bd)">
+      <div class="ff"><label>Market name</label><input id="mkt-name" placeholder="e.g. Germany"></div>
+      <div class="ff"><label>Flag emoji</label><input id="mkt-flag" placeholder="🇩🇪" style="font-size:20px"></div>
+      <div class="ff"><label>Primary city</label><input id="mkt-city" placeholder="e.g. Berlin"></div>
+      <div class="ff"><label>Currency</label><input id="mkt-currency" placeholder="e.g. EUR / £ / $"></div>
+      <div class="ff"><label>Visa needed?</label>
+        <select id="mkt-visa" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+          <option value="no">No — right to work</option>
+          <option value="yes">Yes — need sponsorship</option>
+          <option value="maybe">Depends on role</option>
+        </select>
+      </div>
+      <div class="ff"><label>Board colour</label>
+        <select id="mkt-color" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+          <option value="#4f8ef7">Blue</option>
+          <option value="#a8e063">Green</option>
+          <option value="#a855f7">Purple</option>
+          <option value="#14b8a6">Teal</option>
+          <option value="#f5a623">Orange</option>
+          <option value="#ef4545">Red</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="addbtn" onclick="addMarket()">+ Add Market</button>
+      <button class="ghost-btn" onclick="closeModal('markets-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Custom Job Boards Modal ── -->
+<div class="overlay" id="boards-modal">
+  <div class="modal" style="width:500px">
+    <div class="modal-title">📋 My Job Boards</div>
+    <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.6">Add any job board. Use <code style="background:var(--s3);padding:1px 5px;border-radius:3px">{query}</code> and <code style="background:var(--s3);padding:1px 5px;border-radius:3px">{location}</code> as placeholders in the URL.</p>
+    <div id="boards-library" style="margin-bottom:12px">
+      <div style="font-size:10px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Quick add from library</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px" id="board-library-chips"></div>
+    </div>
+    <div id="custom-boards-list" style="margin-bottom:12px"></div>
+    <div style="padding:12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bd)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="ff"><label>Board name</label><input id="board-name" placeholder="e.g. StepStone"></div>
+        <div class="ff"><label>Icon/emoji</label><input id="board-icon" placeholder="🔍"></div>
+        <div class="ff"><label>Market</label><input id="board-market" placeholder="e.g. Germany"></div>
+        <div class="ff"><label>Description</label><input id="board-desc" placeholder="e.g. German jobs board"></div>
+      </div>
+      <div class="ff" style="margin-bottom:8px"><label>Search URL template</label><input id="board-url" placeholder="https://stepstone.de/jobs/{query}/{location}"></div>
+      <div style="font-size:10px;color:var(--t3);margin-top:4px">💡 Replace the search query part with {query} and location with {location}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="addbtn" onclick="addCustomBoard()">+ Add Board</button>
+      <button class="ghost-btn" onclick="closeModal('boards-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
