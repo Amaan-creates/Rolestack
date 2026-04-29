@@ -1,5 +1,3 @@
-cat > /home/claude/rolestack_v3.html << 'HTMLEOF'
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2635,6 +2633,3 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
 </body>
 </html>
-HTMLEOF
-echo "File size: $(wc -c < /home/claude/rolestack_v3.html) bytes"
-echo "Functions: $(grep -c 'function ' /home/claude/rolestack_v3.html)"
