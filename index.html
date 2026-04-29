@@ -287,22 +287,102 @@ a{color:var(--acc);text-decoration:none}
     </div>
   </nav>
   <div class="land-hero">
-    <div class="land-title">Your job search,<br><span>finally organised</span></div>
-    <div class="land-sub">Dual UK & Dubai pipelines, live job search, Google Calendar sync, Gmail auto-tracking, and AI-powered CV tailoring — all in one place.</div>
-    <div class="land-ctas">
-      <button class="addbtn" style="padding:12px 28px;font-size:14px" onclick="showAuth('signup')">Start for free →</button>
-      <button class="nb" style="padding:12px 20px;border:1px solid var(--bd2)" onclick="showAuth('login')">Log in</button>
+    <div class="land-badge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(168,224,99,.1);border:1px solid rgba(168,224,99,.25);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--acc);margin-bottom:20px;letter-spacing:.3px">
+      ⚡ Role · Stack — Your dual AI job search engine
     </div>
+    <div class="land-title">Hunt smarter.<br><span>Land faster.</span></div>
+    <div class="land-sub">The only job search OS that works across every market, every job board, and every AI provider. Add your markets, connect your tools, and let Role find the roles while Stack executes the outreach.</div>
+    <div class="land-ctas">
+      <button class="addbtn" style="padding:13px 32px;font-size:14px;font-weight:700" onclick="showAuth('signup')">Get started free →</button>
+      <button class="nb" style="padding:13px 22px;border:1px solid var(--bd2);font-size:13px" onclick="showAuth('login')">Log in</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div style="display:flex;gap:32px;justify-content:center;margin:32px 0 36px;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">Any market</div>
+        <div style="font-size:11px;color:var(--t3)">Add UK, Dubai, Berlin, Singapore...</div>
+      </div>
+      <div style="width:1px;background:var(--bd);display:none" class="stat-div"></div>
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">100k+</div>
+        <div style="font-size:11px;color:var(--t3)">UK sponsors verified live</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">3 AI engines</div>
+        <div style="font-size:11px;color:var(--t3)">Claude · ChatGPT · Gemini</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">Free</div>
+        <div style="font-size:11px;color:var(--t3)">BYOK — you keep control</div>
+      </div>
+    </div>
+
+    <!-- Feature grid -->
     <div class="land-features">
-      <div class="land-feat"><div class="land-feat-icon">🇬🇧🇦🇪</div><div class="land-feat-title">Dual Market Boards</div><div class="land-feat-desc">Separate UK and Dubai Kanban pipelines with visa sponsorship checking against the live Home Office register.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">📧</div><div class="land-feat-title">Gmail Auto-Sync</div><div class="land-feat-desc">Connect Gmail to automatically detect interview invites, rejections and recruiter messages — your board updates itself.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">⚡</div><div class="land-feat-title">Live Job Search</div><div class="land-feat-desc">Search real jobs from 24 boards across UK and UAE. One click to add any role straight to your pipeline.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">✦</div><div class="land-feat-title">AI CV Studio</div><div class="land-feat-desc">Paste a JD, get a tailored ATS-optimised CV in seconds. Download as DOCX or PDF with your chosen font and size.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">📅</div><div class="land-feat-title">Calendar Integration</div><div class="land-feat-desc">Google Calendar sync auto-detects interviews and moves roles to the right stage on your board automatically.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">◈</div><div class="land-feat-title">Connections CRM</div><div class="land-feat-desc">Track your LinkedIn outreach with a 5-step engagement sequence. Never let a warm contact go cold again.</div></div>
+      <div class="land-feat">
+        <div class="land-feat-icon">🌍</div>
+        <div class="land-feat-title">Multi-Market Boards</div>
+        <div class="land-feat-desc">Add any country or city as a market. Each gets its own Kanban pipeline, currency, visa rules, and job board set. Built for global job seekers.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">⚡</div>
+        <div class="land-feat-title">Role + Stack AI</div>
+        <div class="land-feat-desc">Two AI identities built in. Role finds opportunities across any market. Stack drafts messages, preps interviews, and prioritises your pipeline. Works with Claude, ChatGPT or Gemini.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">📋</div>
+        <div class="land-feat-title">Plug-and-Play Job Boards</div>
+        <div class="land-feat-desc">Choose from a global library of job boards or add your own with a URL template. Search LinkedIn, Indeed, Bayt, StepStone, Naukri — wherever you are in the world.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">📧</div>
+        <div class="land-feat-title">Gmail Auto-Tracking</div>
+        <div class="land-feat-desc">Connect Gmail to automatically detect interview invites, rejections and recruiter messages. Your board updates itself — no manual entry needed.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">✦</div>
+        <div class="land-feat-title">AI CV Studio</div>
+        <div class="land-feat-desc">Paste a job description, get a tailored ATS-optimised CV in seconds. Download as DOCX or PDF with full font and size control.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">📅</div>
+        <div class="land-feat-title">Calendar + CRM</div>
+        <div class="land-feat-desc">Google Calendar sync auto-detects interviews. The Connections CRM tracks your LinkedIn outreach with a 5-step engagement sequence per contact.</div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div style="margin-top:48px;padding:32px;background:var(--s2);border-radius:12px;border:1px solid var(--bd);text-align:left;max-width:700px;margin-left:auto;margin-right:auto">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;text-align:center">How Rolestack works</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Set up your markets</div><div style="font-size:12px;color:var(--t2)">Add the countries and cities you're targeting. Each gets its own board, job boards, and currency.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Ask Role to find opportunities</div><div style="font-size:12px;color:var(--t2)">Tell Role what you're looking for. It searches across your boards, scores fit, and adds roles to your pipeline in one click.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Let Stack execute</div><div style="font-size:12px;color:var(--t2)">Stack drafts your outreach, tailors your CV, preps your interviews, and tells you what to focus on each week.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Track everything automatically</div><div style="font-size:12px;color:var(--t2)">Gmail and Calendar sync keeps your board current. Follow-up reminders surface stale roles before they go cold.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA bottom -->
+    <div style="margin-top:48px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px">Ready to run a smarter job search?</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:20px">Free to use. Bring your own AI key. No lock-in.</div>
+      <button class="addbtn" style="padding:13px 36px;font-size:14px;font-weight:700" onclick="showAuth('signup')">Create your free account →</button>
     </div>
   </div>
-  <div class="land-footer">Built by Amaan Aslam · Rolestack © 2026 · <a href="#" onclick="showAuth('login')">Log in</a></div>
+  <div class="land-footer">Rolestack © 2026 · <a href="#" onclick="showAuth('login')" style="color:var(--acc)">Log in</a> · <a href="https://github.com/amaan-creates/Rolestack" target="_blank" style="color:var(--t3)">GitHub</a></div>
 </div>
 
 <div id="auth-wrap" class="auth-wrap" style="display:none">
@@ -793,6 +873,10 @@ function showLanding(){
   document.getElementById('landing').style.display='flex';
   document.getElementById('auth-wrap').style.display='none';
   document.getElementById('app').classList.remove('on');
+  const fab = document.getElementById('rs-fab');
+  if (fab) fab.style.display = 'none';
+  const panel = document.getElementById('rs-chat-panel');
+  if (panel) panel.style.display = 'none';
 }
 function showAuth(mode){
   authMode=mode;
@@ -850,7 +934,10 @@ async function onLogin(user){
   document.getElementById('user-email-short').textContent=user.email.split('@')[0];
   document.getElementById('settings-email').textContent=user.email;
   
-  await loadProfile();
+  await loadProfile()
+  // Show Role+Stack FAB when logged in
+  const fab = document.getElementById('rs-fab');
+  if (fab) fab.style.display = 'flex';;
   await loadUserData();
   loadSponsorCount();
   loadDiscover();
@@ -2048,6 +2135,7 @@ function toggleRSChat() {
   const isOpen = panel.style.display === 'flex';
   panel.style.display = isOpen ? 'none' : 'flex';
   fab.style.display = isOpen ? 'flex' : 'none';
+  if (!isOpen) panel.style.flexDirection = 'column';
   if (!isOpen) {
     renderQuickPrompts();
     if (chatHistory.length === 0) addChatMsg('system', getRoleStackGreeting());
@@ -2292,6 +2380,61 @@ function removeBoard(i) {
 // ══════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SPONSOR DATABASE — Supabase powered, daily sync
+// ══════════════════════════════════════════════════════
+let sponsorCache = {};
+let sponsorLastSync = localStorage.getItem('rs_sponsor_sync') || null;
+
+async function checkSponsorDB(companyName) {
+  if (!companyName) return 'UNKNOWN';
+  const key = companyName.toLowerCase().trim();
+  if (sponsorCache[key] !== undefined) return sponsorCache[key];
+  
+  try {
+    // Fuzzy search in Supabase uk_sponsors table
+    const { data, error } = await sb
+      .from('uk_sponsors')
+      .select('organisation_name, type_and_rating, route')
+      .ilike('organisation_name', `%${companyName.split(' ')[0]}%`)
+      .limit(5);
+    
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      // Check if any result closely matches
+      const match = data.find(r => {
+        const name = r.organisation_name.toLowerCase();
+        return name.includes(key) || key.includes(name.split(' ')[0].toLowerCase());
+      });
+      const result = match ? 'YES' : 'UNKNOWN';
+      sponsorCache[key] = result;
+      return result;
+    }
+    sponsorCache[key] = 'UNKNOWN';
+    return 'UNKNOWN';
+  } catch(e) {
+    // Fall back to local hardcoded list
+    return getSponsor(companyName);
+  }
+}
+
+async function getSponsorCount() {
+  try {
+    const { count } = await sb.from('uk_sponsors').select('*', { count: 'exact', head: true });
+    return count || 0;
+  } catch(e) { return 0; }
+}
+
+function formatSyncAge(ts) {
+  if (!ts) return 'Never synced';
+  const mins = Math.floor((Date.now() - new Date(ts)) / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1440) return `${Math.floor(mins/60)}h ago`;
+  return `${Math.floor(mins/1440)}d ago`;
+}
+
 loadAllKeys();
 checkSession();
 
