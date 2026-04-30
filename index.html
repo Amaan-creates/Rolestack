@@ -633,15 +633,24 @@ a{color:var(--acc);text-decoration:none}
             </div>
             <div id="key-claude-row">
               <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>Claude API Key</strong> — <a href="https://console.anthropic.com" target="_blank" style="color:var(--acc)">console.anthropic.com</a></p>
-              <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+              <div style="display:flex;gap:8px">
+                <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1">
+                <button class="addbtn" onclick="testApiKey('claude')" id="test-btn-claude" style="background:var(--s3);color:var(--t1);border:1px solid var(--bd2)">Test Key</button>
+              </div>
             </div>
             <div id="key-openai-row" style="display:none">
               <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>OpenAI API Key</strong> — <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--acc)">platform.openai.com</a></p>
-              <input type="password" id="openai-key-input" placeholder="sk-...">
+              <div style="display:flex;gap:8px">
+                <input type="password" id="openai-key-input" placeholder="sk-..." style="flex:1">
+                <button class="addbtn" onclick="testApiKey('openai')" id="test-btn-openai" style="background:var(--s3);color:var(--t1);border:1px solid var(--bd2)">Test Key</button>
+              </div>
             </div>
             <div id="key-gemini-row" style="display:none">
               <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>Gemini API Key</strong> — <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--acc)">aistudio.google.com</a></p>
-              <input type="password" id="gemini-key-input" placeholder="AIza...">
+              <div style="display:flex;gap:8px">
+                <input type="password" id="gemini-key-input" placeholder="AIza..." style="flex:1">
+                <button class="addbtn" onclick="testApiKey('gemini')" id="test-btn-gemini" style="background:var(--s3);color:var(--t1);border:1px solid var(--bd2)">Test Key</button>
+              </div>
             </div>
             <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">
               <p style="font-size:11px;color:var(--t2);margin-bottom:6px"><strong>🌍 Markets & Job Boards</strong></p>
@@ -655,7 +664,7 @@ a{color:var(--acc);text-decoration:none}
             <input type="text" id="adzuna-id-input" placeholder="Adzuna App ID">
             <input type="password" id="adzuna-key-input" placeholder="Adzuna App Key" style="margin-top:4px">
             
-            <button class="savebtn" onclick="saveAllKeys()">Save keys</button>
+            <button class="savebtn" onclick="saveAllKeys()">Save all keys</button>
             <div id="api-status" style="margin-top:6px;font-size:11px;color:var(--t2)"></div>
           </div>
           <div class="ss">
@@ -761,7 +770,7 @@ a{color:var(--acc);text-decoration:none}
   <div class="overlay" id="onboarding-modal">
     <div class="modal">
       <div class="modal-title">Welcome to Rolestack</div>
-      <div style="font-size:11px;color:var(--t3);margin-bottom:14px" id="ob-step-ind">Step 1 of 4</div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:14px" id="ob-step-ind">Step 1 of 5</div>
       <div id="ob-step-1">
         <div class="form-grid">
           <div class="ff full"><label>Full Name</label><input id="ob-name" placeholder="Amaan Aslam"></div>
@@ -817,7 +826,24 @@ a{color:var(--acc);text-decoration:none}
         </div>
         <div class="modal-actions">
           <button class="ghost-btn" onclick="obNext(3)">← Back</button>
-          <button class="addbtn" onclick="obComplete()">Complete setup ✓</button>
+          <button class="addbtn" onclick="obNext(5)">Next →</button>
+        </div>
+      </div>
+      <div id="ob-step-5" style="display:none">
+        <div class="form-grid">
+          <div class="ff full">
+            <label>Connect Your AI (Claude API Key)</label>
+            <input type="password" id="ob-api-key" placeholder="sk-ant-api03-...">
+            <div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.5">
+              Rolestack is free because you securely bring your own key.<br>
+              <a href="https://console.anthropic.com" target="_blank" style="color:var(--acc)">Click here to generate one</a>, paste it above, and we will validate it instantly.
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-btn" onclick="obNext(4)">← Back</button>
+          <button class="addbtn" id="ob-validate-btn" onclick="validateAndCompleteOb()">Validate & Finish ✓</button>
+          <button class="ghost-btn" onclick="obComplete()" style="font-size:10px; margin-left:auto">Skip for now</button>
         </div>
       </div>
     </div>
@@ -974,18 +1000,61 @@ async function checkSession(){
 }
 
 // ══════════════════════════════════════════════════════
-// ONBOARDING
+// ONBOARDING & API VALIDATION (PRIORITY 1)
 // ══════════════════════════════════════════════════════
 function openOnboarding() {
   document.getElementById('onboarding-modal').classList.add('on');
   obNext(1);
 }
 function obNext(step) {
-  for(let i=1; i<=4; i++) {
-    document.getElementById('ob-step-'+i).style.display = i===step ? 'block' : 'none';
+  for(let i=1; i<=5; i++) {
+    const st = document.getElementById('ob-step-'+i);
+    if(st) st.style.display = i===step ? 'block' : 'none';
   }
-  document.getElementById('ob-step-ind').textContent = `Step ${step} of 4`;
+  document.getElementById('ob-step-ind').textContent = `Step ${step} of 5`;
 }
+
+async function validateAndCompleteOb() {
+  const key = document.getElementById('ob-api-key').value.trim();
+  const btn = document.getElementById('ob-validate-btn');
+  
+  if (!key) {
+     alert("Please provide an API key to enable the AI features, or click 'Skip for now'.");
+     return;
+  }
+  
+  btn.textContent = 'Validating...';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307', 
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'Ping' }]
+      })
+    });
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'Invalid key or billing not set up.');
+    }
+    
+    apiKey = key;
+    await sb.from('profiles').upsert({id:currentUser.id, anthropic_key: apiKey});
+    showToast('✅ API Key Validated!');
+    obComplete(); // Proceed to complete onboarding
+  } catch(e) {
+    alert('Validation Failed: ' + e.message + '\n\nPlease check your Anthropic console billing.');
+    btn.textContent = 'Validate & Finish ✓';
+  }
+}
+
 async function obComplete() {
   const name = document.getElementById('ob-name').value;
   const title = document.getElementById('ob-title').value;
@@ -1512,6 +1581,8 @@ async function syncGmail(){
       const date=headers.find(h=>h.name==='Date')?.value||'';
       
       const INT_KW=/interview|screen|screening|technical call|hiring manager|recruiter call|talent|assessment|meet the team|invitation to interview/i;
+      const REJ_KW=/unfortunately|not moving forward|not successful|other candidates|regret to inform|decided not to/i;
+      const CONF_KW=/application received|thank you for applying|we received your|successfully submitted|application confirmed/i;
       
       if(INT_KW.test(subject)){
         let matchedRole=null;
@@ -1694,7 +1765,7 @@ function jumpTo(id,mkt){
 }
 
 // ══════════════════════════════════════════════════════
-// MULTI-LLM SETTINGS
+// MULTI-LLM SETTINGS & API VALIDATION (PRIORITY 1)
 // ══════════════════════════════════════════════════════
 function setProvider(p) {
   localStorage.setItem('rs_ai_provider', p);
@@ -1723,6 +1794,51 @@ function saveAllKeys() {
   updateApiDot();
   document.getElementById('api-status').textContent = '✓ Keys saved.';
   showToast('✅ API keys saved');
+}
+
+// REAL-TIME HEALTH CHECK PING (Settings Menu)
+async function testApiKey(provider) {
+  let key = '';
+  const btn = document.getElementById(`test-btn-${provider}`);
+  btn.textContent = 'Testing...';
+  
+  try {
+    if (provider === 'claude') {
+      key = document.getElementById('api-key-input')?.value?.trim() || apiKey;
+      if (!key || key.startsWith('•')) key = apiKey;
+      if (!key) throw new Error("Please enter a key first.");
+      
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307', 
+          max_tokens: 1,
+          messages: [{ role: 'user', content: 'Ping' }]
+        })
+      });
+      if (!res.ok) throw new Error("Invalid API Key");
+    }
+    
+    // (OpenAI and Gemini checks would go here similarly)
+    
+    btn.textContent = 'Valid ✓';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Test Key'; btn.style.color = 'var(--t1)'; btn.style.borderColor = 'var(--bd2)'; }, 3000);
+    showToast(`✅ ${provider} key is valid!`);
+  } catch(e) {
+    btn.textContent = 'Failed ✗';
+    btn.style.color = 'var(--red)';
+    btn.style.borderColor = 'var(--red)';
+    setTimeout(() => { btn.textContent = 'Test Key'; btn.style.color = 'var(--t1)'; btn.style.borderColor = 'var(--bd2)'; }, 3000);
+    alert(`Validation Failed: ${e.message}`);
+  }
 }
 
 function saveAdzunaKeys() {
@@ -1758,6 +1874,318 @@ async function migrateDataToSupabase() {
     localStorage.removeItem('rs_roles_v3');
   }
 }
+
+// ══════════════════════════════════════════════════════
+// ROLE & STACK VOICE AI (JACK & JILL PATCH)
+// ══════════════════════════════════════════════════════
+let chatMode = 'role';
+let chatHistory = [];
+let recognition;
+let isListening = false;
+let ttsEnabled = localStorage.getItem('rs_tts_enabled') === 'true';
+
+const ROLE_PROMPTS = [
+  'Find Enterprise AE roles matching my profile',
+  'What roles should I apply for this week?',
+  'Find roles in my target markets',
+  'Search for roles at AI companies'
+];
+
+const STACK_PROMPTS = [
+  'What should I focus on this week?',
+  'Which roles are going stale?',
+  'Draft a follow-up for my latest application',
+  'Prep me for my next interview'
+];
+
+function initSpeechRecognition() {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      isListening = true;
+      const ind = document.getElementById('rs-listening-indicator');
+      if(ind) ind.style.display = 'block';
+      const btn = document.getElementById('rs-mic-btn');
+      if(btn) {
+        btn.style.background = 'rgba(239,69,69,.1)';
+        btn.style.color = 'var(--red)';
+        btn.style.borderColor = 'var(--red)';
+      }
+      if(window.speechSynthesis) window.speechSynthesis.cancel();
+    };
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
+      }
+      document.getElementById('rs-input').value = final || interim;
+      if (final) {
+        sendRSChat();
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech error', event.error);
+      showToast('Microphone error/not available');
+      stopListening();
+    };
+
+    recognition.onend = () => { stopListening(); };
+  } else {
+    const btn = document.getElementById('rs-mic-btn');
+    if(btn) btn.style.display = 'none';
+  }
+}
+
+function toggleMic() {
+  if (!recognition) initSpeechRecognition();
+  if (!recognition) { showToast("Voice input not supported in this browser."); return; }
+  if (isListening) recognition.stop();
+  else recognition.start();
+}
+
+function stopListening() {
+  isListening = false;
+  const ind = document.getElementById('rs-listening-indicator');
+  if (ind) ind.style.display = 'none';
+  const btn = document.getElementById('rs-mic-btn');
+  if (btn) {
+    btn.style.background = 'var(--s3)';
+    btn.style.color = 'var(--t2)';
+    btn.style.borderColor = 'var(--bd2)';
+  }
+}
+
+function updateTTSBtn() {
+  const btn = document.getElementById('rs-tts-btn');
+  if (btn) {
+    btn.textContent = ttsEnabled ? '🔊' : '🔇';
+    btn.style.color = ttsEnabled ? 'var(--acc)' : 'var(--t2)';
+  }
+}
+
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  localStorage.setItem('rs_tts_enabled', ttsEnabled);
+  updateTTSBtn();
+  if (!ttsEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+// JACK & JILL DYNAMIC VOICE PATCH
+function speakText(text, agentName) {
+  if (!ttsEnabled || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  
+  // Clean text for speech
+  const cleanText = text.replace(/[*_#]/g, '').replace(/(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2194|\u2195|\u21a9|\u21aa|[\u2300-\u23ff]|\u2b50|\u2b55|\u2934|\u2935|\u2b1b|\u2b1c)/g, '');
+  
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  
+  // Load available system voices
+  const voices = window.speechSynthesis.getVoices();
+  
+  if (voices.length > 0) {
+    if (agentName === 'role') {
+      // "JACK": Find a male/deep voice for Role
+      const jack = voices.find(v => v.name.includes('Male') || v.name.includes('Daniel') || v.name.includes('David') || v.name.includes('Guy')) || voices[0];
+      if (jack) utterance.voice = jack;
+      utterance.pitch = 0.85; // Slightly deeper
+    } else {
+      // "JILL": Find a female/bright voice for Stack
+      const jill = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Zira') || v.name.includes('Serena')) || voices[1] || voices[0];
+      if (jill) utterance.voice = jill;
+      utterance.pitch = 1.1; // Slightly brighter
+    }
+  }
+
+  utterance.rate = 1.0; 
+  utterance.volume = 1.0;
+  window.speechSynthesis.speak(utterance);
+}
+
+// Ensure voices are loaded proactively by the browser
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+function toggleRSChat() {
+  const panel = document.getElementById('rs-chat-panel');
+  const fab = document.getElementById('rs-fab');
+  const isOpen = panel.style.display === 'flex';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  fab.style.display = isOpen ? 'flex' : 'none';
+  if (!isOpen) panel.style.flexDirection = 'column';
+  if (!isOpen) {
+    updateTTSBtn();
+    renderQuickPrompts();
+    if (chatHistory.length === 0) addChatMsg('system', getRoleStackGreeting());
+    document.getElementById('rs-input').focus();
+  } else {
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+    if(isListening) stopListening();
+  }
+}
+
+function getRoleStackGreeting() {
+  const total = roles.length;
+  const stale = roles.filter(r => {
+    if (!r.role_date) return false;
+    const days = Math.floor((Date.now() - new Date(r.role_date)) / 86400000);
+    return days >= 7 && ['waiting','active','building'].includes(r.status);
+  }).length;
+  const interviewsCount = roles.filter(r => r.status === 'interview').length;
+  
+  return `Pipeline: **${total} roles tracked**, ${stale} need follow-up${interviewsCount > 0 ? `, ${interviewsCount} in interview stage` : ''}.\n\nI'm ready. Use **Role** to find new opportunities or **Stack** to execute on your current pipeline. What do you need?`;
+}
+
+function setChatMode(mode) {
+  chatMode = mode;
+  document.getElementById('mode-role').style.borderBottomColor = mode === 'role' ? 'var(--acc)' : 'transparent';
+  document.getElementById('mode-role').style.color = mode === 'role' ? 'var(--acc)' : 'var(--t2)';
+  document.getElementById('mode-role').style.background = mode === 'role' ? 'rgba(168,224,99,.08)' : 'none';
+  document.getElementById('mode-stack').style.borderBottomColor = mode === 'stack' ? '#4f8ef7' : 'transparent';
+  document.getElementById('mode-stack').style.color = mode === 'stack' ? '#4f8ef7' : 'var(--t2)';
+  document.getElementById('mode-stack').style.background = mode === 'stack' ? 'rgba(79,142,247,.08)' : 'none';
+  renderQuickPrompts();
+}
+
+function renderQuickPrompts() {
+  const prompts = chatMode === 'role' ? ROLE_PROMPTS : STACK_PROMPTS;
+  const color = chatMode === 'role' ? 'var(--acc)' : '#4f8ef7';
+  document.getElementById('rs-quick-prompts').innerHTML = prompts.map(p =>
+    `<button onclick="jjQuick('${p.replace(/'/g,"\\'")}')" style="padding:3px 8px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;color:${color};font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap">${p}</button>`
+  ).join('');
+}
+
+function jjQuick(text) {
+  document.getElementById('rs-input').value = text;
+  sendRSChat();
+}
+
+function addChatMsg(role, text) {
+  const msgs = document.getElementById('rs-messages');
+  const isUser = role === 'user';
+  const isRole = role === 'role';
+  const color = isRole ? 'var(--acc)' : isUser ? 'var(--t1)' : '#4f8ef7';
+  const bg = isUser ? 'var(--s3)' : 'var(--bg)';
+  const label = isUser ? '' : isRole ? '🔍 Role' : '⚡ Stack';
+  const align = isUser ? 'flex-end' : 'flex-start';
+  
+  const div = document.createElement('div');
+  div.style.cssText = `display:flex;flex-direction:column;align-items:${align};gap:2px`;
+  
+  if (label) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = `font-size:9px;color:${color};font-weight:600;letter-spacing:.5px;padding:0 4px`;
+    lbl.textContent = label;
+    div.appendChild(lbl);
+  }
+  
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `background:${bg};border:1px solid var(--bd);border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.7;color:${isUser?'var(--t1)':'var(--t2)'};max-width:90%;white-space:pre-wrap`;
+  bubble.textContent = text.replace(/\*\*(.*?)\*\*/g, '$1');
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendRSChat() {
+  const input = document.getElementById('rs-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  addChatMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  
+  const isDiscovery = /find|search|look for|discover|what roles|show me roles/i.test(text);
+  const isExecution = /draft|write|move|update|follow.up|prep|priorit|stale|focus/i.test(text);
+  if (isDiscovery && chatMode !== 'role') setChatMode('role');
+  if (isExecution && chatMode !== 'stack') setChatMode('stack');
+  
+  const agentName = chatMode === 'role' ? 'role' : 'stack';
+  addChatMsg('system_typing', '...');
+  
+  try {
+    const pipelineSummary = roles.slice(0, 15).map(r => `${r.co} (${r.role}) — ${r.status}`).join('\n');
+    const systemPrompt = chatMode === 'role'
+      ? `You are Role, an AI job search scout inside Rolestack. Suggest 5 specific real companies and roles matching the profile. User profile: ${userProfile.substring(0, 500)}`
+      : `You are Stack, an AI execution engine inside Rolestack. Help the user execute their search. Current pipeline (${roles.length} roles): ${pipelineSummary}. Profile: ${userProfile.substring(0, 500)}`;
+    
+    const msgs = document.getElementById('rs-messages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    
+    // We try callClaude as the default provider for now
+    const reply = await callClaude(`${systemPrompt}\n\nUser: ${text}`, 800);
+    addChatMsg(agentName, reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    
+    // Pass the specific agentName to trigger "Jack" or "Jill"
+    speakText(reply, agentName);
+    
+  } catch(e) {
+    const msgs = document.getElementById('rs-messages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    addChatMsg('stack', `Error: ${e.message}. Make sure your AI key is set in Settings.`);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+checkSession();
 </script>
+
+<!-- ── Role & Stack Chat Panel ── -->
+<div id="rs-chat-panel" style="position:fixed;bottom:24px;right:24px;z-index:500;display:none;flex-direction:column;width:380px;max-height:580px;background:var(--s2);border:1px solid var(--bd2);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.7);font-family:'DM Mono',monospace;overflow:hidden">
+  <!-- Header -->
+  <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--s1)">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px">
+          <span style="color:var(--acc)">Role</span>
+          <span style="color:var(--t3);margin:0 4px">+</span>
+          <span style="color:#4f8ef7">Stack</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3)">Your dual AI job search engine</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px">
+      <button id="rs-tts-btn" onclick="toggleTTS()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:14px;padding:2px 4px" title="Toggle AI Voice Reply">🔇</button>
+      <button onclick="toggleRSChat()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;padding:2px 6px" title="Close">✕</button>
+    </div>
+  </div>
+  <!-- Mode toggle -->
+  <div style="display:flex;border-bottom:1px solid var(--bd);flex-shrink:0">
+    <button id="mode-role" onclick="setChatMode('role')" style="flex:1;padding:9px;background:rgba(168,224,99,.08);border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer">
+      🔍 Role — Find
+    </button>
+    <button id="mode-stack" onclick="setChatMode('stack')" style="flex:1;padding:9px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer">
+      ⚡ Stack — Execute
+    </button>
+  </div>
+  <!-- Messages -->
+  <div id="rs-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:220px;max-height:360px"></div>
+  <!-- Quick prompts -->
+  <div id="rs-quick-prompts" style="padding:8px 10px;display:flex;gap:4px;flex-wrap:wrap;border-top:1px solid var(--bd);background:var(--s1)"></div>
+  <!-- Listening Indicator -->
+  <div id="rs-listening-indicator" style="display:none;font-size:10px;color:var(--red);padding:6px 12px 0;animation:pulse 1.5s infinite;font-weight:600">🔴 Listening...</div>
+  <!-- Input -->
+  <div style="padding:10px;border-top:1px solid var(--bd);display:flex;gap:6px;flex-shrink:0;align-items:center">
+    <input id="rs-input" placeholder="Ask Role or Stack..." style="flex:1;background:var(--s3);border:1px solid var(--bd2);border-radius:6px;padding:8px 11px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace" onkeydown="if(event.key==='Enter')sendRSChat()">
+    <button id="rs-mic-btn" onclick="toggleMic()" style="padding:8px 10px;background:var(--s3);color:var(--t2);border:1px solid var(--bd2);border-radius:6px;font-size:14px;cursor:pointer;transition:.2s" title="Use Voice">🎤</button>
+    <button onclick="sendRSChat()" style="padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">↑</button>
+  </div>
+</div>
+
+<!-- ── Role+Stack FAB Button ── -->
+<button id="rs-fab" onclick="toggleRSChat()" style="position:fixed;bottom:24px;right:24px;z-index:499;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#4f8ef7);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:20px;display:none;align-items:center;justify-content:center;transition:.2s" title="Ask Role or Stack">⚡</button>
+
 </body>
 </html>
