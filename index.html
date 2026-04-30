@@ -2135,7 +2135,116 @@ async function sendRSChat() {
     addChatMsg('stack', `Error: ${e.message}. Make sure your AI key is set in Settings.`);
   }
 }
+// ══════════════════════════════════════════════════════
+// CUSTOM MARKETS & BOARDS (RESTORED)
+// ══════════════════════════════════════════════════════
+function openMarketsModal() {
+  renderMarketsList();
+  openModal('markets-modal');
+}
 
+function renderMarketsList() {
+  const el = document.getElementById('markets-list');
+  if (!customMarkets.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom markets yet. Your defaults (UK + Dubai) always appear.</div>';
+    return;
+  }
+  el.innerHTML = customMarkets.map((m, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s3);border-radius:6px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${m.flag}</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--t1)">${sanitize(m.name)}</div>
+          <div style="font-size:10px;color:var(--t3)">${sanitize(m.city)} · ${sanitize(m.currency)} · ${m.visa === 'no' ? '✓ Right to work' : m.visa === 'yes' ? '⚠ Needs visa' : '? Depends'}</div>
+        </div>
+      </div>
+      <button onclick="removeMarket(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px">✕</button>
+    </div>`).join('');
+}
+
+function addMarket() {
+  const name = document.getElementById('mkt-name').value.trim();
+  const city = document.getElementById('mkt-city').value.trim();
+  if (!name || !city) { alert('Name and city are required.'); return; }
+  customMarkets.push({
+    id: name.toLowerCase().replace(/\s+/g,'-'),
+    name, flag: document.getElementById('mkt-flag').value || '🌍',
+    city, currency: document.getElementById('mkt-currency').value || '',
+    visa: document.getElementById('mkt-visa').value,
+    color: document.getElementById('mkt-color').value
+  });
+  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
+  ['mkt-name','mkt-flag','mkt-city','mkt-currency'].forEach(id => document.getElementById(id).value = '');
+  renderMarketsList();
+  generateMarketUI(); // Instantly update the top navigation tabs!
+  showToast('✅ Market added: ' + sanitize(name));
+}
+
+function removeMarket(i) {
+  customMarkets.splice(i, 1);
+  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
+  renderMarketsList();
+  generateMarketUI();
+}
+
+function openBoardsModal() {
+  renderBoardLibrary();
+  renderCustomBoardsList();
+  openModal('boards-modal');
+}
+
+function renderBoardLibrary() {
+  const chips = document.getElementById('board-library-chips');
+  if(chips) chips.innerHTML = BOARD_LIBRARY.map(b => `
+    <button onclick="addFromLibrary(${BOARD_LIBRARY.indexOf(b)})" 
+      style="padding:4px 10px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">
+      ${b.i} ${b.n} <span style="color:var(--t3);font-size:9px">${b.market}</span>
+    </button>`).join('');
+}
+
+function addFromLibrary(i) {
+  const b = BOARD_LIBRARY[i];
+  if (customBoards.find(cb => cb.name === b.n)) { showToast('Already added'); return; }
+  customBoards.push({ name: b.n, icon: b.i, market: b.market, desc: '', url: b.u });
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  renderCustomBoardsList();
+  showToast('✅ Added: ' + b.n);
+}
+
+function renderCustomBoardsList() {
+  const el = document.getElementById('custom-boards-list');
+  if (!customBoards.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom boards yet. Add from the library or create your own below.</div>';
+    return;
+  }
+  el.innerHTML = customBoards.map((b, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--s3);border-radius:6px;margin-bottom:5px">
+      <div style="font-size:12px;color:var(--t1)">${b.icon} ${sanitize(b.name)} <span style="color:var(--t3);font-size:10px">${sanitize(b.market)}</span></div>
+      <button onclick="removeBoard(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function addCustomBoard() {
+  const name = document.getElementById('board-name').value.trim();
+  const url = document.getElementById('board-url').value.trim();
+  if (!name || !url) { alert('Name and URL are required.'); return; }
+  customBoards.push({
+    name, icon: document.getElementById('board-icon').value || '🔍',
+    market: document.getElementById('board-market').value || 'Global',
+    desc: document.getElementById('board-desc').value,
+    url
+  });
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  ['board-name','board-icon','board-market','board-desc','board-url'].forEach(id => document.getElementById(id).value = '');
+  renderCustomBoardsList();
+  showToast('✅ Board added: ' + sanitize(name));
+}
+
+function removeBoard(i) {
+  customBoards.splice(i, 1);
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  renderCustomBoardsList();
+}
 // ══════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════
