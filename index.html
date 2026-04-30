@@ -428,6 +428,7 @@ a{color:var(--acc);text-decoration:none}
     <button class="nb" id="n-search" onclick="showView('search')">⌕ Search</button>
     <button class="nb" id="n-connections" onclick="showView('connections')">◈ Connections</button>
     <button class="nb" id="n-interviews" onclick="showView('interviews')">📅 Interviews</button>
+    <button class="nb" id="n-sponsors" onclick="showView('sponsors')">🏛️ UK Sponsors</button>
     <button class="nb" id="n-settings" onclick="showView('settings')">⚙</button>
     <div class="spacer"></div>
     <input id="cmd-input" style="background:var(--s2);border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;color:var(--t1);font-size:12px;outline:none;width:145px;font-family:'DM Mono',monospace" placeholder="⌘K search..." oninput="cmdSearch(this.value)" onkeydown="cmdKey(event)">
@@ -615,6 +616,25 @@ a{color:var(--acc);text-decoration:none}
           <div id="interviews-list"></div>
         </div>
       </div>
+
+      <!-- ── SPONSOR DIRECTORY VIEW ── -->
+      <div class="view" id="view-sponsors">
+        <div style="padding:24px; overflow-y:auto; flex:1; max-width: 1200px; margin: 0 auto; width: 100%">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700">🏛️ Live UK Sponsor Directory</div>
+            <span style="font-size:10px;color:var(--t3)" id="sponsor-dir-count">Loading database...</span>
+          </div>
+          <p style="font-size:11px;color:var(--t2);margin-bottom:20px;line-height:1.7">Search the official Home Office register of 100,000+ licensed UK visa sponsors. Use this to proactively find companies that can sponsor your Skilled Worker visa.</p>
+          
+          <div style="margin-bottom:20px; display:flex; gap:10px">
+            <input id="dir-sponsor-q" placeholder="Search by company name (e.g., 'Monzo', 'Revolut')..." style="flex:1; max-width:500px; background:var(--s2); border:1px solid var(--bd2); border-radius:var(--r); padding:10px 14px; color:var(--t1); font-size:13px; outline:none; font-family:'DM Mono',monospace" oninput="debouncedDirSearch()">
+            <button class="addbtn" onclick="searchSponsorDirectory()">Search</button>
+          </div>
+          
+          <div id="sponsor-dir-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+        </div>
+      </div>
+
       <div class="view" id="view-settings">
         <div class="settings-view">
           <div class="settings-title">Settings</div>
@@ -711,6 +731,7 @@ a{color:var(--acc);text-decoration:none}
       </div>
     </div><!-- /content -->
   </div><!-- /main -->
+  
   <!-- Add Role Modal -->
   <div class="overlay" id="add-modal">
     <div class="modal">
@@ -849,6 +870,69 @@ a{color:var(--acc);text-decoration:none}
     </div>
   </div>
 
+  <!-- Custom Markets Modal -->
+  <div class="overlay" id="markets-modal">
+    <div class="modal" style="width:480px">
+      <div class="modal-title">🌍 My Markets</div>
+      <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.6">Add the job markets you are targeting. Each market gets its own Kanban board, currency, and job search preferences.</p>
+      <div id="markets-list" style="margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bd)">
+        <div class="ff"><label>Market name</label><input id="mkt-name" placeholder="e.g. Germany"></div>
+        <div class="ff"><label>Flag emoji</label><input id="mkt-flag" placeholder="🇩🇪" style="font-size:20px"></div>
+        <div class="ff"><label>Primary city</label><input id="mkt-city" placeholder="e.g. Berlin"></div>
+        <div class="ff"><label>Currency</label><input id="mkt-currency" placeholder="e.g. EUR / £ / $"></div>
+        <div class="ff"><label>Visa needed?</label>
+          <select id="mkt-visa" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+            <option value="no">No — right to work</option>
+            <option value="yes">Yes — need sponsorship</option>
+            <option value="maybe">Depends on role</option>
+          </select>
+        </div>
+        <div class="ff"><label>Board colour</label>
+          <select id="mkt-color" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+            <option value="#4f8ef7">Blue</option>
+            <option value="#a8e063">Green</option>
+            <option value="#a855f7">Purple</option>
+            <option value="#14b8a6">Teal</option>
+            <option value="#f5a623">Orange</option>
+            <option value="#ef4545">Red</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="addbtn" onclick="addMarket()">+ Add Market</button>
+        <button class="ghost-btn" onclick="closeModal('markets-modal')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Job Boards Modal -->
+  <div class="overlay" id="boards-modal">
+    <div class="modal" style="width:500px">
+      <div class="modal-title">📋 My Job Boards</div>
+      <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.6">Add any job board. Use <code style="background:var(--s3);padding:1px 5px;border-radius:3px">{query}</code> and <code style="background:var(--s3);padding:1px 5px;border-radius:3px">{location}</code> as placeholders in the URL.</p>
+      <div id="boards-library" style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Quick add from library</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px" id="board-library-chips"></div>
+      </div>
+      <div id="custom-boards-list" style="margin-bottom:12px"></div>
+      <div style="padding:12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bd)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="ff"><label>Board name</label><input id="board-name" placeholder="e.g. StepStone"></div>
+          <div class="ff"><label>Icon/emoji</label><input id="board-icon" placeholder="🔍"></div>
+          <div class="ff"><label>Market</label><input id="board-market" placeholder="e.g. Germany"></div>
+          <div class="ff"><label>Description</label><input id="board-desc" placeholder="e.g. German jobs board"></div>
+        </div>
+        <div class="ff" style="margin-bottom:8px"><label>Search URL template</label><input id="board-url" placeholder="https://stepstone.de/jobs/{query}/{location}"></div>
+        <div style="font-size:10px;color:var(--t3);margin-top:4px">💡 Replace the search query part with {query} and location with {location}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="addbtn" onclick="addCustomBoard()">+ Add Board</button>
+        <button class="ghost-btn" onclick="closeModal('boards-modal')">Done</button>
+      </div>
+    </div>
+  </div>
+
   <div id="cmd-res"></div>
 </div><!-- /app -->
 
@@ -879,7 +963,6 @@ const COLS=[
 const PLC={applied:'#4f8ef7',active:'#22c55e',waiting:'#f5a623',building:'#9ca3af',interview:'#a855f7',offered:'#a8e063',rejected:'#ef4545',wishlist:'#555'};
 const SEQ_STEPS=['View profile','Like a post','Leave a comment','Connect (personalised)','Message + ask'];
 
-// Default markets if user hasn't set any
 const DEFAULT_MARKETS = [
   { id: 'uk', name: 'UK', flag: '🇬🇧', currency: '£', visa: 'maybe', color: '#4f8ef7' },
   { id: 'dubai', name: 'Dubai', flag: '🇦🇪', currency: 'AED', visa: 'no', color: '#14b8a6' }
@@ -891,7 +974,6 @@ if (customMarkets.length === 0) {
   localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
 }
 
-// Ensure curBoard defaults to the first market
 let curBoard = customMarkets[0]?.id || 'uk'; 
 
 const DEFAULT_PROFILE=`Amaan Aslam — Enterprise B2B Sales | Dubai (Golden Visa) | Targeting UK & UAE roles
@@ -905,6 +987,22 @@ Background:
 • Dubai Golden Visa holder — right to work in UAE, no sponsorship required
 • UK Skilled Worker visa sponsorship required for UK roles`;
 
+const BOARD_LIBRARY = [
+  {n:'LinkedIn',i:'💼',market:'Global',u:'https://www.linkedin.com/jobs/search/?keywords={query}&location={location}'},
+  {n:'Indeed',i:'🔍',market:'Global',u:'https://www.indeed.com/jobs?q={query}&l={location}'},
+  {n:'Glassdoor',i:'🏢',market:'Global',u:'https://www.glassdoor.com/Job/jobs.htm?sc.keyword={query}&locT=C&locKeyword={location}'},
+  {n:'Wellfound',i:'😇',market:'Global',u:'https://wellfound.com/jobs?q={query}&l={location}'},
+  {n:'StepStone',i:'🇩🇪',market:'Germany',u:'https://www.stepstone.de/jobs/{query}/{location}'},
+  {n:'XING',i:'🔗',market:'Germany',u:'https://www.xing.com/jobs/search?keywords={query}&location={location}'},
+  {n:'Bayt',i:'🌐',market:'MENA',u:'https://www.bayt.com/en/international/jobs/{query}-jobs/?soly={location}'},
+  {n:'GulfTalent',i:'⭐',market:'MENA',u:'https://www.gulftalent.com/jobs?q={query}&location={location}'},
+  {n:'Naukri',i:'🇮🇳',market:'India',u:'https://www.naukri.com/{query}-jobs-in-{location}'},
+  {n:'JobStreet',i:'🇸🇬',market:'SEA',u:'https://www.jobstreet.com/en/job-search/{query}-jobs-in-{location}/'},
+  {n:'Seek',i:'🇦🇺',market:'Australia',u:'https://www.seek.com.au/{query}-jobs/in-{location}'},
+  {n:'Otta',i:'🎯',market:'UK',u:'https://otta.com/jobs?q={query}'},
+];
+let customBoards = JSON.parse(localStorage.getItem('rs_custom_boards') || '[]');
+
 // ══════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════
@@ -913,23 +1011,44 @@ let selRole=null, boardFilter='all', searchMkt='uk', discFilter='all';
 let apiKey='', userProfile=DEFAULT_PROFILE, cvData=null, cvRawText='';
 let gcalClientId='', gcalToken=null, gmailToken=null;
 let sponsorCount=0;
+let sponsorLastUpdated='';
 let authMode='login';
 let dragId=null;
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+const sanitize = (str) => { if (!str) return ''; const el = document.createElement('div'); el.textContent = str; return el.innerHTML; };
+function debounce(func, timeout = 300) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => { func.apply(this, args); }, timeout); }; }
+function daysSince(dateStr){if(!dateStr)return 0;try{return Math.floor((Date.now()-new Date(dateStr).getTime())/86400000);}catch(e){return 0;}}
+function daysUntil(dateStr){if(!dateStr)return 999;try{const d=new Date(dateStr);const t=new Date();t.setHours(0,0,0,0);return Math.ceil((d-t)/86400000);}catch(e){return 999;}}
+function now(){return new Date().toISOString().split('T')[0];}
+function formatDate(ds){if(!ds)return'TBC';try{const d=new Date(ds);return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+(ds.includes('T')?' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'');}catch(e){return ds;}}
+function spBadge(co,mktId){
+  const market = customMarkets.find(m => m.id === mktId);
+  if(market && market.visa === 'no') return `<span class="badge" style="background:rgba(20,184,166,.12);color:#14b8a6">✓ Right to work</span>`;
+  return`<span class="badge" style="background:rgba(100,100,100,.12);color:#555" id="sp-${co.replace(/\s/g,'_')}">? Sponsor</span>`;
+}
+function stBadge(status){const c=PLC[status]||'#555',l=COLS.find(x=>x.id===status)?.l||status;return`<span class="badge" style="background:${c}18;color:${c}">${l}</span>`;}
+function showToast(msg){
+  const e=document.getElementById('rs-toast');if(e)e.remove();
+  const t=document.createElement('div');t.id='rs-toast';
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--s2);border:1px solid var(--acc);border-radius:8px;padding:12px 20px;font-size:13px;color:var(--t1);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;gap:8px;animation:slideUp .2s ease;font-family:\'DM Mono\',monospace;white-space:nowrap';
+  t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
+}
 
 // ══════════════════════════════════════════════════════
 // DYNAMIC UI GENERATION
 // ══════════════════════════════════════════════════════
 function generateMarketUI() {
-  // 1. Generate Top Nav Tabs
   const navContainer = document.getElementById('market-nav-tabs');
   navContainer.innerHTML = customMarkets.map((m, i) => 
-    `<button class="nb ${i === 0 ? 'on' : ''}" id="n-${m.id}" onclick="showBoard('${m.id}')"><span class="flag">${m.flag}</span> ${m.name} Board</button>`
+    `<button class="nb ${m.id === curBoard ? 'on' : ''}" id="n-${m.id}" onclick="showBoard('${m.id}')"><span class="flag">${m.flag}</span> ${sanitize(m.name)} Board</button>`
   ).join('');
 
-  // 2. Populate Dropdowns (Add Role Modal)
   const roleSelects = document.querySelectorAll('.dynamic-market-select');
   roleSelects.forEach(select => {
-    select.innerHTML = customMarkets.map(m => `<option value="${m.id}">${m.flag} ${m.name}</option>`).join('');
+    select.innerHTML = customMarkets.map(m => `<option value="${m.id}">${m.flag} ${sanitize(m.name)}</option>`).join('');
   });
 }
 
@@ -978,7 +1097,7 @@ async function onLogin(user){
   const fab = document.getElementById('rs-fab');
   if (fab) fab.style.display = 'flex';
   
-  generateMarketUI(); // Initialize UI based on markets
+  generateMarketUI();
   await loadUserData();
   await loadProfile();
   loadSponsorCount();
@@ -1013,53 +1132,30 @@ function obNext(step) {
   }
   document.getElementById('ob-step-ind').textContent = `Step ${step} of 5`;
 }
-
 async function validateAndCompleteOb() {
   const key = document.getElementById('ob-api-key').value.trim();
   const btn = document.getElementById('ob-validate-btn');
-  
-  if (!key) {
-     alert("Please provide an API key to enable the AI features, or click 'Skip for now'.");
-     return;
-  }
-  
+  if (!key) { alert("Please provide an API key to enable the AI features, or click 'Skip for now'."); return; }
   btn.textContent = 'Validating...';
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-haiku-20240307', 
-        max_tokens: 1,
-        messages: [{ role: 'user', content: 'Ping' }]
-      })
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-3-haiku-20240307', max_tokens: 1, messages: [{ role: 'user', content: 'Ping' }] })
     });
-    
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || 'Invalid key or billing not set up.');
-    }
-    
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || 'Invalid key or billing not set up.'); }
     apiKey = key;
     await sb.from('profiles').upsert({id:currentUser.id, anthropic_key: apiKey});
     showToast('✅ API Key Validated!');
-    obComplete(); // Proceed to complete onboarding
+    obComplete();
   } catch(e) {
     alert('Validation Failed: ' + e.message + '\n\nPlease check your Anthropic console billing.');
     btn.textContent = 'Validate & Finish ✓';
   }
 }
-
 async function obComplete() {
   const name = document.getElementById('ob-name').value;
   const title = document.getElementById('ob-title').value;
-  
-  // Create custom markets based on checkboxes
   const mktCheckboxes = document.querySelectorAll('.ob-mkt:checked');
   let newMarkets = [];
   mktCheckboxes.forEach(cb => {
@@ -1070,18 +1166,12 @@ async function obComplete() {
     if (val === 'Singapore') newMarkets.push({ id: 'singapore', name: 'Singapore', flag: '🇸🇬', currency: 'S$', visa: 'maybe', color: '#ef4545' });
     if (val === 'USA') newMarkets.push({ id: 'usa', name: 'USA', flag: '🇺🇸', currency: '$', visa: 'yes', color: '#a855f7' });
   });
-
   const otherMkt = document.getElementById('ob-mkt-other').value.trim();
   if(otherMkt) {
      const others = otherMkt.split(',').map(m => m.trim()).filter(m => m);
-     others.forEach(m => {
-        newMarkets.push({ id: m.toLowerCase().replace(/\s+/g,'-'), name: m, flag: '🌍', currency: '', visa: 'maybe', color: '#t2' });
-     });
+     others.forEach(m => { newMarkets.push({ id: m.toLowerCase().replace(/\s+/g,'-'), name: m, flag: '🌍', currency: '', visa: 'maybe', color: '#t2' }); });
   }
-
-  // Fallback if they didn't check anything
   if (newMarkets.length === 0) newMarkets = DEFAULT_MARKETS;
-
   customMarkets = newMarkets;
   localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
   curBoard = customMarkets[0].id;
@@ -1094,14 +1184,12 @@ async function obComplete() {
   const sen = document.getElementById('ob-seniority').value;
   const skills = document.getElementById('ob-skills').value;
   const bg = document.getElementById('ob-bg').value;
-
   const pt = `${name} — ${title} | Target: ${trole} (${sen}) | ${tsal}\nMarkets: ${mkts.join(', ')} | Visa: ${visa}\nSkills: ${skills}\n\nBackground:\n${bg}`;
   userProfile = pt;
   localStorage.setItem('rs_profile', pt);
   localStorage.setItem('rs_first_login', 'true');
   document.getElementById('profile-input').value = pt;
   document.getElementById('cv-in').value = bg;
-
   await sb.from('profiles').upsert({ id: currentUser.id, profile_text: pt });
   document.getElementById('onboarding-modal').classList.remove('on');
   showToast('✅ Profile setup complete!');
@@ -1138,14 +1226,12 @@ async function loadProfile(){
       document.getElementById('gcal-sync-btn').style.display='inline-block';
     }
   }
-  
   if(!userProfile && localStorage.getItem('rs_first_login') !== 'true') {
     openOnboarding();
   } else {
     userProfile = userProfile || DEFAULT_PROFILE;
-    showBoard(curBoard); // Show the initial board if not onboarding
+    showBoard(curBoard);
   }
-
   document.getElementById('api-key-input').value=apiKey?'••••••••••••':'';
   document.getElementById('profile-input').value=userProfile;
   document.getElementById('cv-in').value=userProfile.split('\n').slice(2).join('\n');
@@ -1153,15 +1239,28 @@ async function loadProfile(){
 }
 
 // ══════════════════════════════════════════════════════
-// SPONSOR DATABASE
+// SPONSOR DATABASE & TIMESTAMP
 // ══════════════════════════════════════════════════════
-async function loadSponsorCount(){
-  const {count}=await sb.from('uk_sponsors').select('*',{count:'exact',head:true});
-  sponsorCount=count||0;
-  document.getElementById('st-sponsors').textContent=sponsorCount.toLocaleString();
-  document.getElementById('sponsor-db-status').textContent=`${sponsorCount.toLocaleString()} UK sponsors loaded · Home Office register`;
-  if(sponsorCount>0)document.getElementById('sponsor-db-note').textContent=`✓ ${sponsorCount.toLocaleString()} sponsors in DB`;
+async function loadSponsorCount() {
+  const { count } = await sb.from('uk_sponsors').select('*', { count: 'exact', head: true });
+  sponsorCount = count || 0;
+  
+  const { data } = await sb.from('uk_sponsors').select('created_at').limit(1);
+  if (data && data.length > 0 && data[0].created_at) {
+    const d = new Date(data[0].created_at);
+    sponsorLastUpdated = d.toLocaleDateString('en-GB') + ' at ' + d.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+  }
+
+  document.getElementById('st-sponsors').textContent = sponsorCount.toLocaleString();
+  const statusText = `${sponsorCount.toLocaleString()} UK sponsors loaded` + 
+                     (sponsorLastUpdated ? `<br>Sync: ${sponsorLastUpdated}` : '');
+  document.getElementById('sponsor-db-status').innerHTML = statusText;
+  
+  if (sponsorCount > 0) {
+    document.getElementById('sponsor-db-note').textContent = `✓ ${sponsorCount.toLocaleString()} sponsors in DB`;
+  }
 }
+
 async function checkSponsor(companyName){
   if(!companyName)return'UNKNOWN';
   const name=companyName.toLowerCase().trim();
@@ -1172,6 +1271,7 @@ async function checkSponsor(companyName){
   }
   return'NO';
 }
+
 const debouncedSponsorCheck = debounce(async (val) => {
   const el=document.getElementById('sp-check-result');
   if(!val||val.length<2){el.textContent='';return;}
@@ -1182,43 +1282,72 @@ const debouncedSponsorCheck = debounce(async (val) => {
 }, 300);
 
 // ══════════════════════════════════════════════════════
-// HELPERS
+// LIVE SPONSOR DIRECTORY
 // ══════════════════════════════════════════════════════
-function daysSince(dateStr){if(!dateStr)return 0;try{return Math.floor((Date.now()-new Date(dateStr).getTime())/86400000);}catch(e){return 0;}}
-function daysUntil(dateStr){if(!dateStr)return 999;try{const d=new Date(dateStr);const t=new Date();t.setHours(0,0,0,0);return Math.ceil((d-t)/86400000);}catch(e){return 999;}}
-function now(){return new Date().toISOString().split('T')[0];}
-function formatDate(ds){if(!ds)return'TBC';try{const d=new Date(ds);return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+(ds.includes('T')?' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'');}catch(e){return ds;}}
-function spBadge(co,mktId){
-  const market = customMarkets.find(m => m.id === mktId);
-  if(market && market.visa === 'no') return `<span class="badge" style="background:rgba(20,184,166,.12);color:#14b8a6">✓ Right to work</span>`;
-  return`<span class="badge" style="background:rgba(100,100,100,.12);color:#555" id="sp-${co.replace(/\s/g,'_')}">? Sponsor</span>`;
+let dirSponsorCache = [];
+
+const debouncedDirSearch = debounce(() => { searchSponsorDirectory(); }, 400);
+
+async function searchSponsorDirectory() {
+  const q = document.getElementById('dir-sponsor-q').value.trim();
+  const grid = document.getElementById('sponsor-dir-results');
+  
+  if (!q && dirSponsorCache.length > 0) {
+     renderSponsorDir(dirSponsorCache);
+     return;
+  }
+  grid.innerHTML = '<div class="ld">Searching live register...</div>';
+  try {
+    let query = sb.from('uk_sponsors').select('organisation_name, route, type_and_rating').limit(60);
+    if (q) query = query.ilike('organisation_name', `%${q}%`);
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    if (!q) dirSponsorCache = data || [];
+    renderSponsorDir(data || []);
+    
+    document.getElementById('sponsor-dir-count').textContent = sponsorCount > 0 
+        ? `Database active · ${sponsorCount.toLocaleString()} total sponsors · Last synced: ${sponsorLastUpdated}` 
+        : 'Database active';
+
+  } catch(e) {
+    grid.innerHTML = `<div style="color:var(--red);font-size:12px">Error fetching sponsors: ${e.message}</div>`;
+  }
 }
-function stBadge(status){const c=PLC[status]||'#555',l=COLS.find(x=>x.id===status)?.l||status;return`<span class="badge" style="background:${c}18;color:${c}">${l}</span>`;}
+
+function renderSponsorDir(data) {
+  const grid = document.getElementById('sponsor-dir-results');
+  if(!data || data.length === 0) { 
+    grid.innerHTML = '<div style="color:var(--t3);font-size:13px;grid-column:1/-1;text-align:center;padding:40px">No sponsors found matching that name.</div>'; 
+    return; 
+  }
+  grid.innerHTML = data.map(s => `
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px;transition:.15s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bd)'">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--t1)">${sanitize(s.organisation_name)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        <span style="background:rgba(34,197,94,.12);color:#4ade80;font-size:9px;padding:3px 6px;border-radius:4px;font-weight:600">✓ Licensed</span>
+        <span style="background:var(--s3);color:var(--t2);font-size:9px;padding:3px 6px;border-radius:4px">${sanitize(s.route || 'Skilled Worker')}</span>
+      </div>
+      <div style="font-size:10px;color:var(--t3);margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <span>Rating: ${sanitize(s.type_and_rating || 'A (Premium)')}</span>
+        <button class="cpbtn" style="margin:0" onclick="navigator.clipboard.writeText(\`${sanitize(s.organisation_name).replace(/`/g,'\\`')}\`).then(()=>showToast('Copied name!'))">Copy name</button>
+      </div>
+    </div>
+  `).join('');
+}
 
 // ══════════════════════════════════════════════════════
 // RENDER DYNAMIC BOARD
 // ══════════════════════════════════════════════════════
-function render(){
-  renderDynamicBoard();
-  renderSidebar();
-  renderConns();
-}
-
-function getFiltered(mkt){
-  let r=roles.filter(x=>x.market===mkt);
-  if(boardFilter==='all')return r;
-  if(boardFilter==='stale7')return r.filter(x=>['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=7&&daysSince(x.date)<14);
-  if(boardFilter==='stale14')return r.filter(x=>['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=14);
-  return r.filter(x=>x.status===boardFilter);
-}
+function render(){ renderDynamicBoard(); renderSidebar(); renderConns(); }
 
 function renderDynamicBoard(){
   const mktObj = customMarkets.find(m => m.id === curBoard);
   if (!mktObj) return;
 
-  // Update Header
   document.getElementById('board-flag').textContent = mktObj.flag;
-  document.getElementById('board-title').textContent = `${mktObj.name} Pipeline`;
+  document.getElementById('board-title').textContent = `${sanitize(mktObj.name)} Pipeline`;
   document.getElementById('board-title').style.color = mktObj.color || 'var(--t1)';
   
   const lbl=boardFilter==='all'?'All roles':boardFilter==='stale7'?'7-day stale':boardFilter==='stale14'?'14-day stale':(COLS.find(c=>c.id===boardFilter)?.l||boardFilter);
@@ -1226,7 +1355,6 @@ function renderDynamicBoard(){
 
   const filtered = getFiltered(curBoard);
   
-  // Render Columns
   document.getElementById('board-cols').innerHTML=COLS.map(col=>{
     const items=filtered.filter(x=>x.status===col.id);
     return`<div class="col" id="col-${curBoard}-${col.id}">
@@ -1246,7 +1374,6 @@ function renderDynamicBoard(){
     </div>`;
   }).join('');
 
-  // Stale banner
   const s7=roles.filter(x=>x.market===curBoard&&['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=7&&daysSince(x.date)<14).length;
   const s14=roles.filter(x=>x.market===curBoard&&['waiting','active','building'].includes(x.status)&&daysSince(x.date)>=14).length;
   const banner=document.getElementById('board-reminder');
@@ -1254,7 +1381,6 @@ function renderDynamicBoard(){
   if(s7+s14>0){banner.classList.add('on');bannerTxt.textContent=`${s14} role${s14!==1?'s':''} overdue (14+ days) · ${s7} approaching (7+ days) — check follow-ups`;}
   else{banner.classList.remove('on');}
 
-  // Async sponsor checks (only if UK is active market)
   if(curBoard==='uk' || curBoard==='london'){
     for(const r of filtered){
       const elId=`sp-${r.co.replace(/\s/g,'_')}`;
@@ -1281,20 +1407,18 @@ function renderSidebar(){
   document.getElementById('cnt-stale14').textContent=s14;
   document.getElementById('st-total').textContent=roles.length;
   
-  // Dynamic Sidebar Stats for Markets
   const statsList = document.getElementById('stat-markets-list');
   if(statsList) {
       statsList.innerHTML = customMarkets.map(m => {
           const count = roles.filter(x=>x.market===m.id).length;
-          return `<div class="stat-row"><span>${m.flag} ${m.name}</span><span style="color:${m.color || 'var(--t1)'}">${count}</span></div>`;
+          return `<div class="stat-row"><span>${m.flag} ${sanitize(m.name)}</span><span style="color:${m.color || 'var(--t1)'}">${count}</span></div>`;
       }).join('');
   }
-
   document.getElementById('st-conns').textContent=conns.length;
 }
 
 // ══════════════════════════════════════════════════════
-// DRAG AND DROP (NO RE-RENDER)
+// DRAG AND DROP
 // ══════════════════════════════════════════════════════
 function dragStart(e,id,mkt){dragId=id;e.dataTransfer.effectAllowed='move';setTimeout(()=>{const el=e.target;if(el)el.classList.add('dragging');},0);}
 function dragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
@@ -1308,7 +1432,6 @@ async function drop(e,newStatus,mkt){
     const { error } = await sb.from('roles').update({status:newStatus,role_date:now()}).eq('id',dragId).eq('user_id',currentUser.id);
     if(!error) {
       role.status=newStatus;role.date=now();
-      
       const cardEl = document.getElementById('card-' + dragId);
       if (cardEl) {
         e.currentTarget.appendChild(cardEl);
@@ -1342,7 +1465,7 @@ async function drop(e,newStatus,mkt){
 function openPanel(id,mkt){
   const j=roles.find(x=>x.id===id);if(!j)return;selRole=j;
   document.getElementById('rpanel').classList.add('on');
-  document.getElementById('rpt').textContent=`${j.co} — ${j.role}`;
+  document.getElementById('rpt').textContent=`${sanitize(j.co)} — ${sanitize(j.role)}`;
   const d=daysSince(j.date);
   document.getElementById('rpb').innerHTML=`
     ${j.salary?`<div class="fl">Salary</div><div class="fv" style="color:var(--acc)">${sanitize(j.salary)}</div>`:''}
@@ -1358,7 +1481,7 @@ function openPanel(id,mkt){
     <button class="aibtn" style="margin-top:6px;border-color:rgba(20,184,166,.3);color:var(--teal);background:rgba(20,184,166,.07)" onclick="companyResearch(${j.id})">🔍 Company research brief</button>
     <div id="research-${j.id}"></div>
     <div class="panel-actions">
-      <button class="btn-sm" onclick="window.open('https://www.linkedin.com/jobs/search/?keywords='+encodeURIComponent('${j.co} ${j.role}'),'_blank')">LinkedIn ↗</button>
+      <button class="btn-sm" onclick="window.open('https://www.linkedin.com/jobs/search/?keywords='+encodeURIComponent('${j.co.replace(/'/g,"\\'")} ${j.role.replace(/'/g,"\\'")}'),'_blank')">LinkedIn ↗</button>
       <button class="btn-sm" onclick="prefillCV('${j.co.replace(/'/g,"\\'")}','${j.role.replace(/'/g,"\\'")}')">Tailor CV</button>
       <button class="btn-sm" onclick="markFollowedUp(${j.id},'${mkt}')">✓ Followed up</button>
       <button class="btn-sm" onclick="extractContacts(${j.id})">⊕ Extract contacts</button>
@@ -1393,7 +1516,7 @@ function extractContacts(id){
     addConnDirect({name,co:j.co,title:'',status:'pending',note:`Extracted from ${j.co} notes`,seq:[0,0,0,0,0]});
     added++;
   });
-  if(added>0){showToast(`✅ Added ${added} contact${added>1?'s':''} from ${j.co}`);}
+  if(added>0){showToast(`✅ Added ${added} contact${added>1?'s':''} from ${sanitize(j.co)}`);}
   else showToast('ℹ All contacts already in Connections');
 }
 
@@ -1685,45 +1808,33 @@ async function syncCalendar(){
 // ══════════════════════════════════════════════════════
 function showBoard(mktId){
   curBoard = mktId;
-  
-  // Hide all views
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
-  
-  // We now only use one HTML board container: "view-board"
   document.getElementById('view-board').classList.add('on');
-  
-  // Update Nav highlighting
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('on'));
   const navBtn = document.getElementById('n-'+mktId);
   if(navBtn) navBtn.classList.add('on');
-  
   selRole = null;
   renderDynamicBoard();
 }
 
 function showView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
-  // Hide the board view if going to search/discover
   document.getElementById('view-board').classList.remove('on');
-  
   const targetView = document.getElementById('view-'+v);
   if(targetView) targetView.classList.add('on');
-
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('on'));
   const nb=document.getElementById('n-'+v);if(nb)nb.classList.add('on');
-  
   document.getElementById('cmd-res').style.display='none';
   if(v==='interviews'){renderInterviews();populateCompanySelect();}
   if(v==='search'){renderBoards();}
+  if(v==='sponsors'){searchSponsorDirectory();} // Auto-load sponsors when tab clicked
 }
 
 function filterBoard(f,el){
   boardFilter=f;
   document.querySelectorAll('.sidebar .si').forEach(e=>e.classList.remove('on'));
   if(el)el.classList.add('on');
-  
   renderDynamicBoard();
-  
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
   document.getElementById('view-board').classList.add('on');
 }
@@ -1763,6 +1874,118 @@ function jumpTo(id,mkt){
   showBoard(mkt);setTimeout(()=>openPanel(id,mkt),50);
   document.getElementById('cmd-input').value='';document.getElementById('cmd-res').style.display='none';
 }
+
+// ══════════════════════════════════════════════════════
+// CUSTOM MARKETS & BOARDS (RESTORED)
+// ══════════════════════════════════════════════════════
+function openMarketsModal() {
+  renderMarketsList();
+  openModal('markets-modal');
+}
+
+function renderMarketsList() {
+  const el = document.getElementById('markets-list');
+  if (!customMarkets.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom markets yet. Your defaults (UK + Dubai) always appear.</div>';
+    return;
+  }
+  el.innerHTML = customMarkets.map((m, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s3);border-radius:6px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${m.flag}</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--t1)">${sanitize(m.name)}</div>
+          <div style="font-size:10px;color:var(--t3)">${sanitize(m.city)} · ${sanitize(m.currency)} · ${m.visa === 'no' ? '✓ Right to work' : m.visa === 'yes' ? '⚠ Needs visa' : '? Depends'}</div>
+        </div>
+      </div>
+      <button onclick="removeMarket(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px">✕</button>
+    </div>`).join('');
+}
+
+function addMarket() {
+  const name = document.getElementById('mkt-name').value.trim();
+  const city = document.getElementById('mkt-city').value.trim();
+  if (!name || !city) { alert('Name and city are required.'); return; }
+  customMarkets.push({
+    id: name.toLowerCase().replace(/\s+/g,'-'),
+    name, flag: document.getElementById('mkt-flag').value || '🌍',
+    city, currency: document.getElementById('mkt-currency').value || '',
+    visa: document.getElementById('mkt-visa').value,
+    color: document.getElementById('mkt-color').value
+  });
+  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
+  ['mkt-name','mkt-flag','mkt-city','mkt-currency'].forEach(id => document.getElementById(id).value = '');
+  renderMarketsList();
+  generateMarketUI();
+  showToast('✅ Market added: ' + sanitize(name));
+}
+
+function removeMarket(i) {
+  customMarkets.splice(i, 1);
+  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
+  renderMarketsList();
+  generateMarketUI();
+}
+
+function openBoardsModal() {
+  renderBoardLibrary();
+  renderCustomBoardsList();
+  openModal('boards-modal');
+}
+
+function renderBoardLibrary() {
+  const chips = document.getElementById('board-library-chips');
+  if(chips) chips.innerHTML = BOARD_LIBRARY.map(b => `
+    <button onclick="addFromLibrary(${BOARD_LIBRARY.indexOf(b)})" 
+      style="padding:4px 10px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">
+      ${b.i} ${b.n} <span style="color:var(--t3);font-size:9px">${b.market}</span>
+    </button>`).join('');
+}
+
+function addFromLibrary(i) {
+  const b = BOARD_LIBRARY[i];
+  if (customBoards.find(cb => cb.name === b.n)) { showToast('Already added'); return; }
+  customBoards.push({ name: b.n, icon: b.i, market: b.market, desc: '', url: b.u });
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  renderCustomBoardsList();
+  showToast('✅ Added: ' + b.n);
+}
+
+function renderCustomBoardsList() {
+  const el = document.getElementById('custom-boards-list');
+  if (!customBoards.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom boards yet. Add from the library or create your own below.</div>';
+    return;
+  }
+  el.innerHTML = customBoards.map((b, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--s3);border-radius:6px;margin-bottom:5px">
+      <div style="font-size:12px;color:var(--t1)">${b.icon} ${sanitize(b.name)} <span style="color:var(--t3);font-size:10px">${sanitize(b.market)}</span></div>
+      <button onclick="removeBoard(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function addCustomBoard() {
+  const name = document.getElementById('board-name').value.trim();
+  const url = document.getElementById('board-url').value.trim();
+  if (!name || !url) { alert('Name and URL are required.'); return; }
+  customBoards.push({
+    name, icon: document.getElementById('board-icon').value || '🔍',
+    market: document.getElementById('board-market').value || 'Global',
+    desc: document.getElementById('board-desc').value,
+    url
+  });
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  ['board-name','board-icon','board-market','board-desc','board-url'].forEach(id => document.getElementById(id).value = '');
+  renderCustomBoardsList();
+  showToast('✅ Board added: ' + sanitize(name));
+}
+
+function removeBoard(i) {
+  customBoards.splice(i, 1);
+  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
+  renderCustomBoardsList();
+}
+
 
 // ══════════════════════════════════════════════════════
 // MULTI-LLM SETTINGS & API VALIDATION (PRIORITY 1)
@@ -2121,8 +2344,8 @@ async function sendRSChat() {
     const msgs = document.getElementById('rs-messages');
     if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
     
-    // We try callClaude as the default provider for now
-    const reply = await callClaude(`${systemPrompt}\n\nUser: ${text}`, 800);
+    // We try callAI as the default provider router
+    const reply = await callAI(`${systemPrompt}\n\nUser: ${text}`, 800);
     addChatMsg(agentName, reply);
     chatHistory.push({ role: 'assistant', content: reply });
     
@@ -2135,116 +2358,7 @@ async function sendRSChat() {
     addChatMsg('stack', `Error: ${e.message}. Make sure your AI key is set in Settings.`);
   }
 }
-// ══════════════════════════════════════════════════════
-// CUSTOM MARKETS & BOARDS (RESTORED)
-// ══════════════════════════════════════════════════════
-function openMarketsModal() {
-  renderMarketsList();
-  openModal('markets-modal');
-}
 
-function renderMarketsList() {
-  const el = document.getElementById('markets-list');
-  if (!customMarkets.length) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom markets yet. Your defaults (UK + Dubai) always appear.</div>';
-    return;
-  }
-  el.innerHTML = customMarkets.map((m, i) => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s3);border-radius:6px;margin-bottom:6px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:18px">${m.flag}</span>
-        <div>
-          <div style="font-size:12px;font-weight:600;color:var(--t1)">${sanitize(m.name)}</div>
-          <div style="font-size:10px;color:var(--t3)">${sanitize(m.city)} · ${sanitize(m.currency)} · ${m.visa === 'no' ? '✓ Right to work' : m.visa === 'yes' ? '⚠ Needs visa' : '? Depends'}</div>
-        </div>
-      </div>
-      <button onclick="removeMarket(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px">✕</button>
-    </div>`).join('');
-}
-
-function addMarket() {
-  const name = document.getElementById('mkt-name').value.trim();
-  const city = document.getElementById('mkt-city').value.trim();
-  if (!name || !city) { alert('Name and city are required.'); return; }
-  customMarkets.push({
-    id: name.toLowerCase().replace(/\s+/g,'-'),
-    name, flag: document.getElementById('mkt-flag').value || '🌍',
-    city, currency: document.getElementById('mkt-currency').value || '',
-    visa: document.getElementById('mkt-visa').value,
-    color: document.getElementById('mkt-color').value
-  });
-  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
-  ['mkt-name','mkt-flag','mkt-city','mkt-currency'].forEach(id => document.getElementById(id).value = '');
-  renderMarketsList();
-  generateMarketUI(); // Instantly update the top navigation tabs!
-  showToast('✅ Market added: ' + sanitize(name));
-}
-
-function removeMarket(i) {
-  customMarkets.splice(i, 1);
-  localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
-  renderMarketsList();
-  generateMarketUI();
-}
-
-function openBoardsModal() {
-  renderBoardLibrary();
-  renderCustomBoardsList();
-  openModal('boards-modal');
-}
-
-function renderBoardLibrary() {
-  const chips = document.getElementById('board-library-chips');
-  if(chips) chips.innerHTML = BOARD_LIBRARY.map(b => `
-    <button onclick="addFromLibrary(${BOARD_LIBRARY.indexOf(b)})" 
-      style="padding:4px 10px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">
-      ${b.i} ${b.n} <span style="color:var(--t3);font-size:9px">${b.market}</span>
-    </button>`).join('');
-}
-
-function addFromLibrary(i) {
-  const b = BOARD_LIBRARY[i];
-  if (customBoards.find(cb => cb.name === b.n)) { showToast('Already added'); return; }
-  customBoards.push({ name: b.n, icon: b.i, market: b.market, desc: '', url: b.u });
-  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
-  renderCustomBoardsList();
-  showToast('✅ Added: ' + b.n);
-}
-
-function renderCustomBoardsList() {
-  const el = document.getElementById('custom-boards-list');
-  if (!customBoards.length) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--t3);margin-bottom:10px">No custom boards yet. Add from the library or create your own below.</div>';
-    return;
-  }
-  el.innerHTML = customBoards.map((b, i) => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--s3);border-radius:6px;margin-bottom:5px">
-      <div style="font-size:12px;color:var(--t1)">${b.icon} ${sanitize(b.name)} <span style="color:var(--t3);font-size:10px">${sanitize(b.market)}</span></div>
-      <button onclick="removeBoard(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer">✕</button>
-    </div>`).join('');
-}
-
-function addCustomBoard() {
-  const name = document.getElementById('board-name').value.trim();
-  const url = document.getElementById('board-url').value.trim();
-  if (!name || !url) { alert('Name and URL are required.'); return; }
-  customBoards.push({
-    name, icon: document.getElementById('board-icon').value || '🔍',
-    market: document.getElementById('board-market').value || 'Global',
-    desc: document.getElementById('board-desc').value,
-    url
-  });
-  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
-  ['board-name','board-icon','board-market','board-desc','board-url'].forEach(id => document.getElementById(id).value = '');
-  renderCustomBoardsList();
-  showToast('✅ Board added: ' + sanitize(name));
-}
-
-function removeBoard(i) {
-  customBoards.splice(i, 1);
-  localStorage.setItem('rs_custom_boards', JSON.stringify(customBoards));
-  renderCustomBoardsList();
-}
 // ══════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════
