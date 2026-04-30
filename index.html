@@ -289,22 +289,102 @@ a{color:var(--acc);text-decoration:none}
     </div>
   </nav>
   <div class="land-hero">
-    <div class="land-title">Your job search,<br><span>finally organised</span></div>
-    <div class="land-sub">Dual UK & Dubai pipelines, live job search, Google Calendar sync, Gmail auto-tracking, and AI-powered CV tailoring — all in one place.</div>
-    <div class="land-ctas">
-      <button class="addbtn" style="padding:12px 28px;font-size:14px" onclick="showAuth('signup')">Start for free →</button>
-      <button class="nb" style="padding:12px 20px;border:1px solid var(--bd2)" onclick="showAuth('login')">Log in</button>
+    <div class="land-badge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(168,224,99,.1);border:1px solid rgba(168,224,99,.25);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--acc);margin-bottom:20px;letter-spacing:.3px">
+      ⚡ Role · Stack — Your dual AI job search engine
     </div>
+    <div class="land-title">Hunt smarter.<br><span>Land faster.</span></div>
+    <div class="land-sub">The only job search OS that works across every market, every job board, and every AI provider. Add your markets, connect your tools, and let Role find the roles while Stack executes the outreach.</div>
+    <div class="land-ctas">
+      <button class="addbtn" style="padding:13px 32px;font-size:14px;font-weight:700" onclick="showAuth('signup')">Get started free →</button>
+      <button class="nb" style="padding:13px 22px;border:1px solid var(--bd2);font-size:13px" onclick="showAuth('login')">Log in</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div style="display:flex;gap:32px;justify-content:center;margin:32px 0 36px;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">Any market</div>
+        <div style="font-size:11px;color:var(--t3)">Add UK, Dubai, Berlin, Singapore...</div>
+      </div>
+      <div style="width:1px;background:var(--bd);display:none" class="stat-div"></div>
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">100k+</div>
+        <div style="font-size:11px;color:var(--t3)">UK sponsors verified live</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">3 AI engines</div>
+        <div style="font-size:11px;color:var(--t3)">Claude · ChatGPT · Gemini</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--acc)">Free</div>
+        <div style="font-size:11px;color:var(--t3)">BYOK — you keep control</div>
+      </div>
+    </div>
+
+    <!-- Feature grid -->
     <div class="land-features">
-      <div class="land-feat"><div class="land-feat-icon">🇬🇧🇦🇪</div><div class="land-feat-title">Dual Market Boards</div><div class="land-feat-desc">Separate UK and Dubai Kanban pipelines with visa sponsorship checking against the live Home Office register.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">📧</div><div class="land-feat-title">Gmail Auto-Sync</div><div class="land-feat-desc">Connect Gmail to automatically detect interview invites, rejections and recruiter messages — your board updates itself.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">⚡</div><div class="land-feat-title">Live Job Search</div><div class="land-feat-desc">Search real jobs from 24 boards across UK and UAE. One click to add any role straight to your pipeline.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">✦</div><div class="land-feat-title">AI CV Studio</div><div class="land-feat-desc">Paste a JD, get a tailored ATS-optimised CV in seconds. Download as DOCX or PDF with your chosen font and size.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">📅</div><div class="land-feat-title">Calendar Integration</div><div class="land-feat-desc">Google Calendar sync auto-detects interviews and moves roles to the right stage on your board automatically.</div></div>
-      <div class="land-feat"><div class="land-feat-icon">◈</div><div class="land-feat-title">Connections CRM</div><div class="land-feat-desc">Track your LinkedIn outreach with a 5-step engagement sequence. Never let a warm contact go cold again.</div></div>
+      <div class="land-feat">
+        <div class="land-feat-icon">🌍</div>
+        <div class="land-feat-title">Multi-Market Boards</div>
+        <div class="land-feat-desc">Add any country or city as a market. Each gets its own Kanban pipeline, currency, visa rules, and job board set. Built for global job seekers.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">⚡</div>
+        <div class="land-feat-title">Role + Stack AI</div>
+        <div class="land-feat-desc">Two AI identities built in. Role finds opportunities across any market. Stack drafts messages, preps interviews, and prioritises your pipeline. Works with Claude, ChatGPT or Gemini.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">📋</div>
+        <div class="land-feat-title">Plug-and-Play Job Boards</div>
+        <div class="land-feat-desc">Choose from a global library of job boards or add your own with a URL template. Search LinkedIn, Indeed, Bayt, StepStone, Naukri — wherever you are in the world.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">📧</div>
+        <div class="land-feat-title">Gmail Auto-Tracking</div>
+        <div class="land-feat-desc">Connect Gmail to automatically detect interview invites, rejections and recruiter messages. Your board updates itself — no manual entry needed.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">✦</div>
+        <div class="land-feat-title">AI CV Studio</div>
+        <div class="land-feat-desc">Paste a job description, get a tailored ATS-optimised CV in seconds. Download as DOCX or PDF with full font and size control.</div>
+      </div>
+      <div class="land-feat">
+        <div class="land-feat-icon">📅</div>
+        <div class="land-feat-title">Calendar + CRM</div>
+        <div class="land-feat-desc">Google Calendar sync auto-detects interviews. The Connections CRM tracks your LinkedIn outreach with a 5-step engagement sequence per contact.</div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div style="margin-top:48px;padding:32px;background:var(--s2);border-radius:12px;border:1px solid var(--bd);text-align:left;max-width:700px;margin-left:auto;margin-right:auto">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;text-align:center">How Rolestack works</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Set up your markets</div><div style="font-size:12px;color:var(--t2)">Add the countries and cities you're targeting. Each gets its own board, job boards, and currency.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Ask Role to find opportunities</div><div style="font-size:12px;color:var(--t2)">Tell Role what you're looking for. It searches across your boards, scores fit, and adds roles to your pipeline in one click.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Let Stack execute</div><div style="font-size:12px;color:var(--t2)">Stack drafts your outreach, tailors your CV, preps your interviews, and tells you what to focus on each week.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</div>
+          <div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Track everything automatically</div><div style="font-size:12px;color:var(--t2)">Gmail and Calendar sync keeps your board current. Follow-up reminders surface stale roles before they go cold.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA bottom -->
+    <div style="margin-top:48px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px">Ready to run a smarter job search?</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:20px">Free to use. Bring your own AI key. No lock-in.</div>
+      <button class="addbtn" style="padding:13px 36px;font-size:14px;font-weight:700" onclick="showAuth('signup')">Create your free account →</button>
     </div>
   </div>
-  <div class="land-footer">Built by Amaan Aslam · Rolestack © 2026 · <a href="#" onclick="showAuth('login')">Log in</a></div>
+  <div class="land-footer">Rolestack © 2026 · <a href="#" onclick="showAuth('login')" style="color:var(--acc)">Log in</a> · <a href="https://github.com/amaan-creates/Rolestack" target="_blank" style="color:var(--t3)">GitHub</a></div>
 </div>
 <!-- ── AUTH ── -->
 <div id="auth-wrap" class="auth-wrap" style="display:none">
@@ -2065,8 +2145,8 @@ async function sendRSChat() {
     const msgs = document.getElementById('rs-messages');
     if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
     
-    // We try callAI which uses chosen provider from settings
-    const reply = await callAI(`${systemPrompt}\n\nUser: ${text}`, 800);
+    // We try callClaude as the default provider for now
+    const reply = await callClaude(`${systemPrompt}\n\nUser: ${text}`, 800);
     addChatMsg(agentName, reply);
     chatHistory.push({ role: 'assistant', content: reply });
     speakText(reply);
@@ -2083,6 +2163,51 @@ async function sendRSChat() {
 // ══════════════════════════════════════════════════════
 checkSession();
 </script>
+
+<!-- ── Role & Stack Chat Panel ── -->
+<div id="rs-chat-panel" style="position:fixed;bottom:24px;right:24px;z-index:500;display:none;flex-direction:column;width:380px;max-height:580px;background:var(--s2);border:1px solid var(--bd2);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.7);font-family:'DM Mono',monospace;overflow:hidden">
+  <!-- Header -->
+  <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--s1)">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px">
+          <span style="color:var(--acc)">Role</span>
+          <span style="color:var(--t3);margin:0 4px">+</span>
+          <span style="color:#4f8ef7">Stack</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3)">Your dual AI job search engine</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px">
+      <button id="rs-tts-btn" onclick="toggleTTS()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:14px;padding:2px 4px" title="Toggle AI Voice Reply">🔇</button>
+      <button onclick="toggleRSChat()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;padding:2px 6px" title="Close">✕</button>
+    </div>
+  </div>
+  <!-- Mode toggle -->
+  <div style="display:flex;border-bottom:1px solid var(--bd);flex-shrink:0">
+    <button id="mode-role" onclick="setChatMode('role')" style="flex:1;padding:9px;background:rgba(168,224,99,.08);border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer">
+      🔍 Role — Find
+    </button>
+    <button id="mode-stack" onclick="setChatMode('stack')" style="flex:1;padding:9px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer">
+      ⚡ Stack — Execute
+    </button>
+  </div>
+  <!-- Messages -->
+  <div id="rs-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:220px;max-height:360px"></div>
+  <!-- Quick prompts -->
+  <div id="rs-quick-prompts" style="padding:8px 10px;display:flex;gap:4px;flex-wrap:wrap;border-top:1px solid var(--bd);background:var(--s1)"></div>
+  <!-- Listening Indicator -->
+  <div id="rs-listening-indicator" style="display:none;font-size:10px;color:var(--red);padding:6px 12px 0;animation:pulse 1.5s infinite;font-weight:600">🔴 Listening...</div>
+  <!-- Input -->
+  <div style="padding:10px;border-top:1px solid var(--bd);display:flex;gap:6px;flex-shrink:0;align-items:center">
+    <input id="rs-input" placeholder="Ask Role or Stack..." style="flex:1;background:var(--s3);border:1px solid var(--bd2);border-radius:6px;padding:8px 11px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace" onkeydown="if(event.key==='Enter')sendRSChat()">
+    <button id="rs-mic-btn" onclick="toggleMic()" style="padding:8px 10px;background:var(--s3);color:var(--t2);border:1px solid var(--bd2);border-radius:6px;font-size:14px;cursor:pointer;transition:.2s" title="Use Voice">🎤</button>
+    <button onclick="sendRSChat()" style="padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">↑</button>
+  </div>
+</div>
+
+<!-- ── Role+Stack FAB Button ── -->
+<button id="rs-fab" onclick="toggleRSChat()" style="position:fixed;bottom:24px;right:24px;z-index:499;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#4f8ef7);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:20px;display:none;align-items:center;justify-content:center;transition:.2s" title="Ask Role or Stack">⚡</button>
+
 </body>
 </html>
-HTMLEOF
