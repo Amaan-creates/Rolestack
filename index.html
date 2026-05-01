@@ -136,6 +136,112 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .prep-q{padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--t1)}
 .prep-q:last-child{border-bottom:none}
 .prep-answer{font-size:11px;color:var(--t2);line-height:1.6;margin-top:4px;padding-left:20px}
+/* ── SEARCH ── */
+.search-view{padding:18px;overflow-y:auto;flex:1}
+.boards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.bcard{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 13px;cursor:pointer;transition:.12s}
+.bcard:hover{border-color:var(--acc)}
+.bcard-icon{font-size:18px;margin-bottom:5px}
+.bcard-name{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;margin-bottom:1px}
+.bcard-desc{font-size:10px;color:var(--t2)}
+.adzuna-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:14px}
+.ajob{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;transition:.12s}
+.ajob:hover{border-color:var(--bd2)}
+.ajob-co{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:2px}
+.ajob-role{font-size:12px;color:var(--t2);margin-bottom:6px}
+.ajob-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--t3);margin-bottom:8px}
+.ajob-desc{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ajob-actions{display:flex;gap:6px}
+.sponsor-badge{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500}
+.sp-yes{background:rgba(34,197,94,.12);color:#4ade80}
+.sp-no{background:rgba(239,69,69,.08);color:#f87171}
+.sp-unk{background:rgba(100,100,100,.1);color:var(--t3)}
+/* ── CONNECTIONS ── */
+.conn-view{padding:18px;overflow-y:auto;flex:1}
+.conn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:8px}
+.ccard{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;transition:.12s}
+.ccard:hover{border-color:var(--bd2)}
+.cname{font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
+.ctitle{font-size:11px;color:var(--t2);margin-bottom:5px}
+.cnote{font-size:11px;color:var(--t3);line-height:1.4;margin-top:5px}
+.cft{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.seq-mini{display:flex;gap:3px;margin-top:7px}
+.seq-dot{width:20px;height:6px;border-radius:3px;background:var(--s3);cursor:pointer;transition:.12s}
+.seq-dot.done{background:var(--acc)}
+/* ── INTERVIEWS ── */
+.int-view{padding:18px;overflow-y:auto;flex:1}
+.int-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.int-card.today{border-left:3px solid var(--acc)}
+.int-card.soon{border-left:3px solid var(--yellow)}
+.int-company{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:2px}
+.countdown{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;text-align:right;line-height:1}
+.countdown-label{font-size:9px;color:var(--t2);text-align:right}
+.int-badge{font-size:10px;padding:3px 9px;border-radius:4px;font-weight:500;white-space:nowrap}
+/* ── SETTINGS ── */
+.settings-view{padding:24px;overflow-y:auto;flex:1;max-width:580px}
+.settings-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:18px}
+.ss{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.ss h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:3px}
+.ss p{font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6}
+.ss input,.ss textarea,.ss select{width:100%;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:8px 11px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace;margin-bottom:4px}
+.ss input:focus,.ss textarea:focus{border-color:var(--acc)}
+.ss textarea{height:130px;resize:none;line-height:1.6}
+.savebtn{padding:7px 15px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;margin-top:5px}
+.savebtn:hover{background:var(--acc2)}
+.savebtn.ghost{background:none;border:1px solid var(--bd2);color:var(--t2)}
+.savebtn.ghost:hover{border-color:var(--acc);color:var(--acc)}
+.savebtn.danger{background:var(--red);color:#fff}
+/* ── DISCOVER ── */
+.disc-view{padding:20px;overflow-y:auto;flex:1}
+.disc-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.disc-controls select{background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 10px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace}
+.scan-btn{padding:8px 20px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer}
+.scan-btn:disabled{opacity:.5;cursor:not-allowed}
+.disc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.disc-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;position:relative}
+.disc-card.fresh{border-left:3px solid var(--acc)}
+.disc-co{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:2px;padding-right:44px}
+.disc-role{font-size:12px;color:var(--t2);margin-bottom:6px}
+.disc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.disc-why{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:10px}
+.disc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.disc-add{padding:5px 12px;background:var(--acc);color:#000;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;cursor:pointer}
+.disc-add.added{background:var(--s3);color:var(--t2);cursor:default;border:1px solid var(--bd2)}
+.disc-link{padding:5px 10px;background:none;border:1px solid var(--bd2);color:var(--t2);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.disc-link:hover{border-color:var(--acc);color:var(--acc)}
+.fit-ring{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;position:absolute;top:14px;right:14px}
+/* ── CV STUDIO ── */
+.cv-studio{display:flex;gap:0;flex:1;overflow:hidden}
+.cv-left{width:370px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s1)}
+.cv-right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cv-section{padding:12px 14px;border-bottom:1px solid var(--bd)}
+.cv-label{font-size:10px;color:var(--t2);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;font-weight:500}
+.cv-ta{width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:8px 10px;color:var(--t1);font-size:12px;line-height:1.6;resize:none;outline:none;font-family:'DM Mono',monospace}
+.cv-ta:focus{border-color:var(--acc)}
+.fmt-sel{background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r2);padding:5px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace;cursor:pointer}
+.genbtn{padding:7px 14px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer}
+.genbtn:disabled{opacity:.4;cursor:not-allowed}
+.genbtn.ghost{background:none;border:1px solid var(--bd2);color:var(--t1)}
+.cv-preview-wrap{flex:1;overflow-y:auto;padding:24px;background:#f5f5f5;display:flex;justify-content:center}
+.cv-preview{background:#fff;width:750px;min-height:980px;padding:48px 56px;box-shadow:0 4px 24px rgba(0,0,0,.15);font-family:Arial,sans-serif;line-height:1.5;color:#111}
+.cv-preview h1{font-size:22pt;font-weight:700;margin-bottom:2px;color:#111}
+.cv-preview .contact-line{font-size:9pt;color:#555;margin-bottom:16px}
+.cv-preview .section-head{font-size:11pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1.5px solid #111;padding-bottom:3px;margin:14px 0 8px}
+.cv-preview .job-title{font-weight:700}
+.cv-preview .job-meta{font-size:9.5pt;color:#555;margin-bottom:4px}
+.cv-preview ul{padding-left:18px;margin:0}
+.cv-preview ul li{margin-bottom:3px}
+.ats-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-size:11px}
+.ats-score{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.ats-track{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.ats-fill{height:100%;border-radius:3px;background:var(--acc);transition:.5s}
+.kw-chip{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10px;margin:2px;background:rgba(168,224,99,.12);color:var(--acc);border:1px solid rgba(168,224,99,.2)}
+.kw-chip.miss{background:rgba(239,69,69,.08);color:var(--red);border-color:rgba(239,69,69,.2)}
+.dl-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--bd);flex-shrink:0;background:var(--s1)}
+.dlbtn{flex:1;padding:9px;border-radius:var(--r2);border:1px solid var(--bd2);background:none;color:var(--t1);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.dlbtn:hover{border-color:var(--acc);color:var(--acc)}
+.dlbtn.primary{background:var(--acc);color:#000;border-color:var(--acc)}
+.dlbtn.primary:hover{background:var(--acc2)}
 /* ── SPONSOR DIRECTORY TABLE ── */
 .dir-layout { display: flex; gap: 20px; align-items: flex-start; }
 .dir-sidebar { width: 240px; flex-shrink: 0; background: var(--s2); border: 1px solid var(--bd); border-radius: var(--r); padding: 16px; }
@@ -151,14 +257,6 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .pill-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
 .dir-links a { color: var(--t2); text-decoration: none; font-size: 14px; margin-right: 8px; transition: .15s; }
 .dir-links a:hover { color: var(--acc); }
-/* ── SEARCH ── */
-.search-view{padding:18px;overflow-y:auto}
-.boards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
-.bcard{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 13px;cursor:pointer;transition:.12s}
-.bcard:hover{border-color:var(--acc)}
-.bcard-icon{font-size:18px;margin-bottom:5px}
-.bcard-name{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;margin-bottom:1px}
-.bcard-desc{font-size:10px;color:var(--t2)}
 /* ── MODALS ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center}
 .overlay.on{display:flex}
@@ -181,19 +279,6 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .cmd-item:hover{background:var(--s3)}
 .cmd-item:last-child{border-bottom:none}
 .cmd-co{font-family:'Syne',sans-serif;font-weight:600;font-size:12px}
-/* ── SETTINGS ── */
-.settings-view{padding:24px;overflow-y:auto;flex:1;max-width:580px}
-.settings-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:18px}
-.ss{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px}
-.ss h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:3px}
-.ss p{font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6}
-.ss input,.ss textarea,.ss select{width:100%;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:8px 11px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace;margin-bottom:4px}
-.ss input:focus,.ss textarea:focus{border-color:var(--acc)}
-.ss textarea{height:130px;resize:none;line-height:1.6}
-.savebtn{padding:7px 15px;background:var(--acc);color:#000;border:none;border-radius:var(--r2);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;margin-top:5px}
-.savebtn:hover{background:var(--acc2)}
-.savebtn.ghost{background:none;border:1px solid var(--bd2);color:var(--t2)}
-.savebtn.ghost:hover{border-color:var(--acc);color:var(--acc)}
 /* ── LOADING / MISC ── */
 .ld{color:var(--t2);font-size:12px;display:flex;align-items:center;gap:6px;padding:6px 0}
 .ld::before{content:'';width:12px;height:12px;border:2px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
@@ -203,6 +288,7 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .mtab{padding:10px 18px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;display:flex;align-items:center;gap:6px}
 .mtab:hover{color:var(--t1)}
 .mtab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.cal-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(79,142,247,.12);color:#4f8ef7;margin-top:5px}
 select,input,textarea{font-family:inherit}
 a{color:var(--acc);text-decoration:none}
 </style>
@@ -265,8 +351,11 @@ a{color:var(--acc);text-decoration:none}
     <div class="nav-sep"></div>
     <div id="market-nav-tabs" style="display:flex;gap:6px"></div>
     <div class="nav-sep"></div>
+    <button class="nb" id="n-discover" onclick="showView('discover')">⚡ Discover</button>
+    <button class="nb" id="n-cv" onclick="showView('cv')">✦ CV Studio</button>
     <button class="nb" id="n-search" onclick="showView('search')">⌕ Search</button>
     <button class="nb" id="n-connections" onclick="showView('connections')">◈ Connections</button>
+    <button class="nb" id="n-interviews" onclick="showView('interviews')">📅 Interviews</button>
     <button class="nb" id="n-sponsors" onclick="showView('sponsors')">🏛️ UK Sponsors</button>
     <button class="nb" id="n-settings" onclick="showView('settings')">⚙</button>
     <div class="spacer"></div>
@@ -301,8 +390,14 @@ a{color:var(--acc);text-decoration:none}
         <div class="si on" id="s-all" onclick="filterBoard('all',this)"><div class="si-l"><div class="dot" style="background:var(--t2)"></div>All</div><span class="cnt" id="cnt-all">0</span></div>
         <div class="si" onclick="filterBoard('applied',this)"><div class="si-l"><div class="dot" style="background:#4f8ef7"></div>Applied</div><span class="cnt" id="cnt-applied">0</span></div>
         <div class="si" onclick="filterBoard('active',this)"><div class="si-l"><div class="dot" style="background:var(--green)"></div>Active</div><span class="cnt" id="cnt-active">0</span></div>
+        <div class="si" onclick="filterBoard('waiting',this)"><div class="si-l"><div class="dot" style="background:var(--yellow)"></div>Awaiting</div><span class="cnt" id="cnt-waiting">0</span></div>
         <div class="si" onclick="filterBoard('interview',this)"><div class="si-l"><div class="dot" style="background:var(--purple)"></div>Interviews</div><span class="cnt" id="cnt-interview">0</span></div>
         <div class="si" onclick="filterBoard('offered',this)"><div class="si-l"><div class="dot" style="background:var(--acc)"></div>Offers</div><span class="cnt" id="cnt-offered">0</span></div>
+      </div>
+      <div>
+        <div class="sl">Follow-ups</div>
+        <div class="si" onclick="filterBoard('stale7',this)"><div class="si-l"><div class="dot" style="background:var(--yellow)"></div>7-day stale</div><span class="cnt hot" id="cnt-stale7">0</span></div>
+        <div class="si" onclick="filterBoard('stale14',this)"><div class="si-l"><div class="dot" style="background:var(--red)"></div>14-day stale</div><span class="cnt hot" id="cnt-stale14">0</span></div>
       </div>
       <div>
         <div class="sl">Stats</div>
@@ -318,6 +413,7 @@ a{color:var(--acc);text-decoration:none}
       
       <!-- DYNAMIC BOARD CONTAINER -->
       <div class="view on" id="view-board" style="flex-direction:column">
+        <div id="board-reminder" class="reminder-banner"><span>⏰</span><span id="board-reminder-text"></span></div>
         <div style="display:flex;flex:1;overflow:hidden">
           <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
             <div class="board-head">
@@ -331,6 +427,81 @@ a{color:var(--acc);text-decoration:none}
             <div class="rph"><div class="rpt" id="rpt">Details</div><button class="btn-sm" onclick="closePanel()">✕</button></div>
             <div class="rpb" id="rpb"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- DISCOVER -->
+      <div class="view" id="view-discover">
+        <div class="disc-view">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">⚡ Discover Roles</div>
+            <span id="last-scan-label" style="font-size:10px;color:var(--t3)"></span>
+          </div>
+          <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.7">AI-powered role discovery across both markets. Each scan finds live roles matched to your profile, scores them for fit, checks sponsor status, and lets you add them in one click.</p>
+          <div class="disc-controls">
+            <select id="disc-market"><option value="both">🌍 Both markets</option><option value="uk">🇬🇧 UK only</option><option value="dubai">🇦🇪 Dubai only</option></select>
+            <select id="disc-type"><option value="ae">Enterprise / Mid-Market AE</option><option value="bd">BD Manager / Commercial</option><option value="sales">Sales Director / Head of Sales</option><option value="csm">Customer Success / AM</option><option value="all">All sales roles</option></select>
+            <select id="disc-sector"><option value="saas">B2B SaaS</option><option value="fintech">Fintech</option><option value="mobility">Mobility / Transport</option><option value="ai">AI / ML</option><option value="any">Any sector</option></select>
+            <button class="scan-btn" id="scan-btn" onclick="runDiscover()">⚡ Scan for roles</button>
+          </div>
+          <div id="disc-grid" class="disc-grid"></div>
+        </div>
+      </div>
+
+      <!-- CV STUDIO -->
+      <div class="view" id="view-cv">
+        <div class="cv-studio">
+          <div class="cv-left">
+            <div class="cv-section"><div class="cv-label">Job Description</div><textarea class="cv-ta" id="jd-in" rows="6" placeholder="Paste the full job description here..."></textarea></div>
+            <div class="cv-section"><div class="cv-label">Your CV / Profile</div><textarea class="cv-ta" id="cv-in" rows="5" placeholder="Paste your CV or career history..."></textarea></div>
+            <div class="cv-section">
+              <div class="cv-label">Formatting</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <select class="fmt-sel" id="fmt-font" onchange="updatePreviewFont()"><option value="Arial">Arial</option><option value="Calibri" selected>Calibri</option><option value="Garamond">Garamond</option><option value="Georgia">Georgia</option><option value="'Times New Roman'">Times New Roman</option><option value="Helvetica">Helvetica</option></select>
+                <select class="fmt-sel" id="fmt-size" onchange="updatePreviewFont()"><option value="10">10pt</option><option value="11" selected>11pt</option><option value="12">12pt</option></select>
+              </div>
+            </div>
+            <div class="cv-section" style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="genbtn" onclick="generateCV()" id="gen-btn">Generate CV ↗</button>
+            </div>
+          </div>
+          <div class="cv-right">
+            <div class="cv-preview-wrap" id="cv-preview-wrap">
+              <div style="color:var(--t3);font-size:13px;text-align:center;margin-top:80px"><div style="font-size:32px;margin-bottom:12px">📄</div>Your formatted CV will appear here</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEARCH VIEW -->
+      <div class="view" id="view-search">
+        <div class="search-view">
+          <div class="boards-grid" id="boards-grid"></div>
+        </div>
+      </div>
+
+      <!-- CONNECTIONS CRM -->
+      <div class="view" id="view-connections">
+        <div class="conn-view">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Connections CRM</div>
+            <button class="addbtn" onclick="openModal('conn-modal')">+ Add</button>
+          </div>
+          <div class="conn-grid" id="conn-grid"></div>
+        </div>
+      </div>
+
+      <!-- INTERVIEWS -->
+      <div class="view" id="view-interviews">
+        <div class="int-view">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">Upcoming Interviews</div>
+            <div style="display:flex;gap:8px">
+              <button class="addbtn" style="background:none;border:1px solid var(--bd2);color:var(--t1)" onclick="syncGmail()">📧 Sync Gmail</button>
+              <button class="addbtn" onclick="openModal('add-interview-modal')">+ Add manually</button>
+            </div>
+          </div>
+          <div id="interviews-list"></div>
         </div>
       </div>
 
@@ -468,6 +639,47 @@ a{color:var(--acc);text-decoration:none}
     </div>
   </div>
 
+  <!-- MODALS -->
+  <div class="overlay" id="add-modal">
+    <div class="modal">
+      <div class="modal-title">Add role</div>
+      <div class="form-grid">
+        <div class="ff"><label>Company</label><input id="a-co" placeholder="e.g. Salesforce"></div>
+        <div class="ff"><label>Role</label><input id="a-role" placeholder="e.g. Enterprise AE"></div>
+        <div class="ff"><label>Market</label><select id="a-market" class="dynamic-market-select"></select></div>
+        <div class="ff"><label>Status</label><select id="a-status"><option value="applied">Applied</option><option value="active">Active</option><option value="waiting">Awaiting</option><option value="interview">Interview</option><option value="offered">Offered</option></select></div>
+        <div class="ff"><label>Date</label><input id="a-date"></div>
+        <div class="ff full"><label>Notes</label><textarea id="a-notes"></textarea></div>
+      </div>
+      <div class="modal-actions"><button class="addbtn" onclick="addRole()">Add role</button><button class="ghost-btn" onclick="closeModal('add-modal')">Cancel</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="conn-modal">
+    <div class="modal">
+      <div class="modal-title">Add connection</div>
+      <div class="form-grid">
+        <div class="ff"><label>Name</label><input id="c-name"></div>
+        <div class="ff"><label>Company</label><input id="c-co"></div>
+        <div class="ff"><label>Status</label><select id="c-status"><option value="pending">Sent</option><option value="connected">Connected</option></select></div>
+        <div class="ff full"><label>Notes</label><textarea id="c-note"></textarea></div>
+      </div>
+      <div class="modal-actions"><button class="addbtn" onclick="addConn()">Add</button><button class="ghost-btn" onclick="closeModal('conn-modal')">Cancel</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="add-interview-modal">
+    <div class="modal">
+      <div class="modal-title">Add interview</div>
+      <div class="form-grid">
+        <div class="ff full"><label>Company</label><input id="int-co"></div>
+        <div class="ff"><label>Date</label><input type="date" id="int-date"></div>
+        <div class="ff"><label>Time</label><input type="time" id="int-time"></div>
+      </div>
+      <div class="modal-actions"><button class="addbtn" onclick="closeModal('add-interview-modal')">Add</button><button class="ghost-btn" onclick="closeModal('add-interview-modal')">Cancel</button></div>
+    </div>
+  </div>
+
   <!-- Onboarding Modal -->
   <div class="overlay" id="onboarding-modal">
     <div class="modal">
@@ -502,6 +714,9 @@ a{color:var(--acc);text-decoration:none}
       </div>
     </div>
   </div>
+  
+  <div class="overlay" id="markets-modal"><div class="modal"><div class="modal-title">My Markets</div><button class="ghost-btn" onclick="closeModal('markets-modal')">Close</button></div></div>
+  <div class="overlay" id="boards-modal"><div class="modal"><div class="modal-title">My Boards</div><button class="ghost-btn" onclick="closeModal('boards-modal')">Close</button></div></div>
 
 </div><!-- /app -->
 
@@ -520,10 +735,11 @@ let currentUser = null;
 const COLS=[
   {id:'applied',l:'Applied',c:'#4f8ef7'},
   {id:'active',l:'Active',c:'#22c55e'},
+  {id:'waiting',l:'Awaiting',c:'#f5a623'},
   {id:'interview',l:'Interviewing',c:'#a855f7'},
   {id:'offered',l:'Offered',c:'#a8e063'},
 ];
-const PLC={applied:'#4f8ef7',active:'#22c55e',interview:'#a855f7',offered:'#a8e063'};
+const PLC={applied:'#4f8ef7',active:'#22c55e',waiting:'#f5a623',interview:'#a855f7',offered:'#a8e063'};
 
 const DEFAULT_MARKETS = [
   { id: 'uk', name: 'UK', flag: '🇬🇧', currency: '£', visa: 'maybe', color: '#4f8ef7' },
@@ -536,11 +752,13 @@ if (customMarkets.length === 0) {
   localStorage.setItem('rs_markets', JSON.stringify(customMarkets));
 }
 
-let roles=[], conns=[];
+let roles=[], conns=[], interviews=[];
 let curBoard = customMarkets[0]?.id || 'uk', boardFilter='all';
 let apiKey='', userProfile='', userTier='free', userCredits=0;
 let sponsorCount=0, sponsorLastUpdated='';
 let authMode='login';
+let selRole=null;
+let dragId=null;
 
 const sanitize = (str) => { if (!str) return ''; const el = document.createElement('div'); el.textContent = str; return el.innerHTML; };
 function debounce(func, timeout = 300) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => { func.apply(this, args); }, timeout); }; }
@@ -550,6 +768,7 @@ function showToast(msg){
   t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--s2);border:1px solid var(--acc);border-radius:8px;padding:12px 20px;font-size:13px;color:var(--t1);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:999;animation:slideUp .2s ease;font-family:\'DM Mono\',monospace;';
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
 }
+function now(){return new Date().toISOString().split('T')[0];}
 
 function hasAIConfigured() {
   return (apiKey && apiKey.length > 10) || (userCredits > 0);
@@ -560,9 +779,14 @@ function hasAIConfigured() {
 // ══════════════════════════════════════════════════════
 function generateMarketUI() {
   const navContainer = document.getElementById('market-nav-tabs');
+  if(!navContainer) return;
   navContainer.innerHTML = customMarkets.map((m, i) => 
     `<button class="nb ${m.id === curBoard ? 'on' : ''}" id="n-${m.id}" onclick="showBoard('${m.id}')"><span class="flag">${m.flag}</span> ${sanitize(m.name)}</button>`
   ).join('');
+  const sels = document.querySelectorAll('.dynamic-market-select');
+  sels.forEach(sel => {
+      sel.innerHTML = customMarkets.map(m => `<option value="${m.id}">${m.flag} ${m.name}</option>`).join('');
+  });
 }
 
 function updateCreditUI() {
@@ -600,7 +824,7 @@ function updateRSCreditBar() {
   const count = document.getElementById('rs-credit-count');
   if (!bar || !count) return;
   if (apiKey) {
-    bar.style.display = 'none'; // BYOK user — no need to show
+    bar.style.display = 'none';
   } else {
     bar.style.display = 'block';
     count.textContent = userCredits + ' credits remaining';
@@ -669,9 +893,18 @@ async function callAI(prompt, maxTokens = 800) {
 async function loadUserData(){
   if(!currentUser)return;
   const uid=currentUser.id;
-  const {data} = await sb.from('roles').select('*').eq('user_id',uid).order('created_at');
-  roles=(data||[]).map(r=>({...r,date:r.role_date}));
+  
+  const [rolesRes,connsRes]=await Promise.all([
+    sb.from('roles').select('*').eq('user_id',uid).order('created_at'),
+    sb.from('connections').select('*').eq('user_id',uid).order('created_at')
+  ]);
+  
+  roles=(rolesRes.data||[]).map(r=>({...r,date:r.role_date}));
+  conns=(connsRes.data||[]).map(c=>({...c,seq:Array.isArray(c.seq)?c.seq:(c.seq||[0,0,0,0,0])}));
+  
   renderDynamicBoard();
+  renderSidebar();
+  renderConns();
 }
 
 async function loadProfile(){
@@ -709,6 +942,12 @@ async function loadSponsorCount() {
     const el = document.getElementById('sponsor-last-sync');
     if (el) el.textContent = `Register last synced: ${formatted} · ${(syncData[0].row_count || 0).toLocaleString()} sponsors`;
     sponsorLastUpdated = formatted;
+  } else {
+      const { data } = await sb.from('uk_sponsors').select('created_at').limit(1);
+      if (data && data.length > 0 && data[0].created_at) {
+        const d = new Date(data[0].created_at);
+        sponsorLastUpdated = d.toLocaleDateString('en-GB') + ' at ' + d.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+      }
   }
 
   document.getElementById('st-sponsors').textContent = sponsorCount.toLocaleString();
@@ -774,7 +1013,173 @@ function renderSponsorDir(data) {
 }
 
 // ══════════════════════════════════════════════════════
-// CORE APP (ABBREVIATED FOR LENGTH, KEEPS ALL LOGIC)
+// BOARD, SIDEBAR, DRAG & DROP
+// ══════════════════════════════════════════════════════
+function showBoard(mktId){
+  curBoard = mktId;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-board').classList.add('on');
+  document.querySelectorAll('.nb').forEach(el=>el.classList.remove('on'));
+  const navBtn = document.getElementById('n-'+mktId);
+  if(navBtn) navBtn.classList.add('on');
+  selRole = null;
+  renderDynamicBoard();
+}
+
+function filterBoard(f,el){
+  boardFilter=f;
+  document.querySelectorAll('.sidebar .si').forEach(e=>e.classList.remove('on'));
+  if(el)el.classList.add('on');
+  renderDynamicBoard();
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-board').classList.add('on');
+}
+
+function renderDynamicBoard() {
+  const mktObj = customMarkets.find(m => m.id === curBoard);
+  if (!mktObj) return;
+
+  document.getElementById('board-flag').textContent = mktObj.flag;
+  document.getElementById('board-title').textContent = `${sanitize(mktObj.name)} Pipeline`;
+  document.getElementById('board-title').style.color = mktObj.color || 'var(--t1)';
+  
+  const filtered = roles.filter(r => r.market === curBoard && (boardFilter === 'all' || r.status === boardFilter || (boardFilter === 'stale7' && ['waiting','active','building'].includes(r.status)) || (boardFilter === 'stale14' && ['waiting','active','building'].includes(r.status)) ));
+  
+  document.getElementById('board-cols').innerHTML=COLS.map(col=>{
+    const items=filtered.filter(x=>x.status===col.id);
+    return`<div class="col" id="col-${curBoard}-${col.id}">
+      <div class="col-h"><span class="col-n" style="color:${col.c}">${col.l}</span><span class="col-c" id="cnt-${curBoard}-${col.id}">${items.length}</span></div>
+      <div class="col-body" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event,'${col.id}','${curBoard}')">${items.map(j=>{
+        return`<div class="jcard${selRole&&selRole.id===j.id?' sel':''}" id="card-${j.id}" draggable="true" ondragstart="dragStart(event,${j.id},'${curBoard}')" onclick="openPanel(${j.id},'${curBoard}')">
+          <div class="jco">${sanitize(j.co)}</div>
+          <div class="jro">${sanitize(j.role)}</div>
+          <div class="jft"><span class="jdt">${sanitize(j.date||'')}</span></div>
+        </div>`;}).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSidebar(){
+  document.getElementById('cnt-all').textContent=roles.length;
+  ['applied','active','waiting','interview','offered'].forEach(s=>{const el=document.getElementById('cnt-'+s);if(el)el.textContent=roles.filter(x=>x.status===s).length;});
+  document.getElementById('st-total').textContent=roles.length;
+  
+  const statsList = document.getElementById('stat-markets-list');
+  if(statsList) {
+      statsList.innerHTML = customMarkets.map(m => {
+          const count = roles.filter(x=>x.market===m.id).length;
+          return `<div class="stat-row"><span>${m.flag} ${sanitize(m.name)}</span><span style="color:${m.color || 'var(--t1)'}">${count}</span></div>`;
+      }).join('');
+  }
+  document.getElementById('st-conns').textContent=conns.length;
+}
+
+function dragStart(e,id,mkt){dragId=id;e.dataTransfer.effectAllowed='move';setTimeout(()=>{const el=e.target;if(el)el.classList.add('dragging');},0);}
+function dragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
+function dragLeave(e){e.currentTarget.classList.remove('drag-over');}
+async function drop(e,newStatus,mkt){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!dragId)return;
+  const role=roles.find(r=>r.id===dragId);
+  if(role&&role.status!==newStatus){
+    const { error } = await sb.from('roles').update({status:newStatus,role_date:now()}).eq('id',dragId).eq('user_id',currentUser.id);
+    if(!error) {
+      role.status=newStatus;role.date=now();
+      renderDynamicBoard(); renderSidebar();
+      showToast('✅ '+sanitize(role.co)+' moved');
+    }
+  }
+  dragId=null;
+}
+
+function openPanel(id,mkt){
+  const j=roles.find(x=>x.id===id);if(!j)return;selRole=j;
+  document.getElementById('rpanel').classList.add('on');
+  document.getElementById('rpt').textContent=`${sanitize(j.co)} — ${sanitize(j.role)}`;
+  document.getElementById('rpb').innerHTML=`
+    <div class="fl">Notes</div><div class="fv">${sanitize(j.notes||'No notes')}</div>
+    <div class="fl">Move stage</div>
+    <div class="stage-row">${COLS.map(c=>`<button class="sp${j.status===c.id?' on':''}" onclick="moveStage(${j.id},'${c.id}','${mkt}')">${c.l}</button>`).join('')}</div>
+    <div class="panel-actions">
+      <button class="btn-sm dng" onclick="deleteRole(${j.id})">Remove</button>
+    </div>`;
+  renderDynamicBoard();
+}
+function closePanel(){document.getElementById('rpanel').classList.remove('on');selRole=null;renderDynamicBoard();}
+
+async function moveStage(id,status,mkt){
+  const j=roles.find(x=>x.id===id);if(!j)return;
+  const {error} = await sb.from('roles').update({status,role_date:now()}).eq('id',id).eq('user_id',currentUser.id);
+  if(!error) { j.status=status;j.date=now(); openPanel(id,mkt);renderSidebar(); }
+}
+async function deleteRole(id){
+  const {error} = await sb.from('roles').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(!error) { roles=roles.filter(x=>x.id!==id); closePanel(); renderDynamicBoard(); renderSidebar(); }
+}
+
+async function addRole(){
+  const co=document.getElementById('a-co').value.trim(),role=document.getElementById('a-role').value.trim();
+  if(!co||!role)return;
+  const newRole={co,role,market:document.getElementById('a-market').value,status:document.getElementById('a-status').value,role_date:document.getElementById('a-date').value||now(),notes:document.getElementById('a-notes').value,user_id:currentUser.id};
+  const {data}=await sb.from('roles').insert(newRole).select().single();
+  if(data){roles.push({...data,date:data.role_date});renderDynamicBoard();renderSidebar();}
+  closeModal('add-modal');
+  ['a-co','a-role','a-date','a-notes'].forEach(id=>document.getElementById(id).value='');
+  showToast('✅ '+sanitize(co)+' added');
+}
+
+// ══════════════════════════════════════════════════════
+// CONNECTIONS
+// ══════════════════════════════════════════════════════
+function renderConns(){
+  const grid = document.getElementById('conn-grid');
+  if(!grid) return;
+  grid.innerHTML=conns.map(c=>{
+    return`<div class="ccard">
+      <div class="cname">${sanitize(c.name)}</div>
+      <div class="ctitle">${sanitize(c.co)}</div>
+      <div class="cnote">${sanitize(c.note)}</div>
+      <button onclick="deleteConn(${c.id})" style="background:none;border:none;color:var(--t3);cursor:pointer;margin-top:8px">✕ Remove</button>
+    </div>`;
+  }).join('')||'<div style="color:var(--t2);font-size:13px;padding:20px">No connections</div>';
+}
+async function addConn(){
+  const name=document.getElementById('c-name').value.trim();if(!name)return;
+  const c={name,co:document.getElementById('c-co').value,status:document.getElementById('c-status').value,note:document.getElementById('c-note').value,user_id:currentUser.id};
+  const {data}=await sb.from('connections').insert(c).select().single();
+  if(data) { conns.push(data); renderConns(); renderSidebar(); }
+  closeModal('conn-modal');
+  ['c-name','c-co','c-note'].forEach(id=>document.getElementById(id).value='');
+}
+async function deleteConn(id){
+  const {error} = await sb.from('connections').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(!error) { conns=conns.filter(x=>x.id!==id);renderConns();renderSidebar(); }
+}
+
+// ══════════════════════════════════════════════════════
+// MODALS & NAVIGATION
+// ══════════════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('on'); }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(el=>el.classList.remove('on'));
+  const vw = document.getElementById('view-'+v);
+  const nb = document.getElementById('n-'+v);
+  if(vw) vw.classList.add('on');
+  if(nb) nb.classList.add('on');
+  if(v==='sponsors') searchSponsorDirectory();
+}
+
+function openMarketsModal() { openModal('markets-modal'); }
+function openBoardsModal() { openModal('boards-modal'); }
+function cmdSearch(val) {}
+function cmdKey(e) {}
+
+// ══════════════════════════════════════════════════════
+// AUTH & ONBOARDING
 // ══════════════════════════════════════════════════════
 function showAuth(mode){authMode=mode;document.getElementById('landing').style.display='none';document.getElementById('auth-wrap').style.display='flex';document.getElementById('app').classList.remove('on');}
 function showLanding(){document.getElementById('landing').style.display='flex';document.getElementById('auth-wrap').style.display='none';document.getElementById('app').classList.remove('on');}
@@ -790,17 +1195,15 @@ async function submitAuth(){
     if(authMode==='signup'){
       const name=document.getElementById('auth-name').value.trim()||email.split('@')[0];
       res=await sb.auth.signUp({email,password:pw,options:{data:{name}}});
+      if(res.error)throw res.error;
       if(res.data?.user&&!res.data?.session){alert('Check email to confirm');return;}
       if(res.data?.user) {
-        await sb.from('profiles').upsert({
-          id: res.data.user.id,
-          email: email,
-          tier: 'free',
-          credits: 10
-        });
+        // PATCH 1: Give 10 free credits on signup
+        await sb.from('profiles').upsert({ id: res.data.user.id, email: email, tier: 'free', credits: 10 });
       }
     }else{
       res=await sb.auth.signInWithPassword({email,password:pw});
+      if(res.error)throw res.error;
     }
     if(res.data?.user) await onLogin(res.data.user);
   }catch(e){alert(e.message);}
@@ -817,6 +1220,7 @@ async function onLogin(user){
   await loadUserData();
   await loadProfile();
   
+  // PATCH 2: Show banner if AI not configured
   if (!hasAIConfigured()) {
     document.getElementById('ai-setup-banner').style.display = 'flex';
   } else {
@@ -829,34 +1233,6 @@ async function onLogin(user){
 async function signOut(){
   await sb.auth.signOut();
   location.reload();
-}
-
-function showBoard(mktId){
-  curBoard = mktId;
-  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
-  document.getElementById('view-board').classList.add('on');
-  renderDynamicBoard();
-}
-
-function showView(v){
-  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
-  document.getElementById('view-'+v).classList.add('on');
-  if(v==='sponsors') searchSponsorDirectory();
-}
-
-function renderDynamicBoard() {
-  document.getElementById('board-cols').innerHTML=COLS.map(col=>{
-    const items=roles.filter(x=>x.market===curBoard && x.status===col.id);
-    return`<div class="col">
-      <div class="col-h"><span class="col-n" style="color:${col.c}">${col.l}</span><span class="col-c">${items.length}</span></div>
-      <div class="col-body">${items.map(j=>`
-        <div class="jcard">
-          <div class="jco">${sanitize(j.co)}</div>
-          <div class="jro">${sanitize(j.role)}</div>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
 }
 
 async function saveAllKeys() {
@@ -875,7 +1251,6 @@ async function saveAllKeys() {
 // ══════════════════════════════════════════════════════
 // VOICE AI CHAT PANEL
 // ══════════════════════════════════════════════════════
-let chatHistory = [];
 let ttsEnabled = true;
 
 function speakText(text, agentName) {
@@ -901,7 +1276,8 @@ function toggleRSChat() {
   panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
   if(panel.style.display === 'flex') {
      updateRSCreditBar();
-     if(chatHistory.length === 0) {
+     const msgs = document.getElementById('rs-messages');
+     if(msgs.innerHTML === '') {
        if(!hasAIConfigured()) {
          const warnHTML = `⚠️ Set up AI first<br><br>To use Role and Stack you need one of:<br><br><b>Option A — Free: Paste your own API key</b><br>Go to Settings → AI Engine → paste your Claude, ChatGPT or Gemini key.<br>Get a free Claude key at console.anthropic.com<br><br><b>Option B — £1 Starter Pack</b><br>No API key needed. Buy 50 credits instantly.<br><br><button class="addbtn" style="background:#4f8ef7;color:#fff;border:none;margin-top:4px" onclick="window.open('https://buy.stripe.com/test_...', '_blank')">Buy £1 Starter Pack →</button>`;
          addChatMsg('system_warning', warnHTML);
@@ -966,6 +1342,6 @@ sb.auth.getSession().then(({data}) => { if(data.session) onLogin(data.session.us
     <button onclick="sendRSChat()" style="padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:6px;cursor:pointer">↑</button>
   </div>
 </div>
-<button id="rs-fab" onclick="toggleRSChat()" style="position:fixed;bottom:24px;right:24px;z-index:499;width:56px;height:56px;border-radius:50%;background:#4f8ef7;border:none;cursor:pointer;font-size:20px;display:none">⚡</button>
+<button id="rs-fab" onclick="toggleRSChat()" style="position:fixed;bottom:24px;right:24px;z-index:499;width:56px;height:56px;border-radius:50%;background:#4f8ef7;border:none;cursor:pointer;font-size:20px;display:none;align-items:center;justify-content:center">⚡</button>
 </body>
 </html>
