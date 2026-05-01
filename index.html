@@ -286,6 +286,14 @@ a{color:var(--acc);text-decoration:none}
     <button class="addbtn" onclick="openModal('add-modal')">+ Add Role</button>
   </div>
   
+  <div id="ai-setup-banner" style="display:none;background:rgba(245,166,35,.1);border-bottom:1px solid rgba(245,166,35,.3);padding:7px 20px;font-size:11px;color:var(--yellow);align-items:center;justify-content:space-between">
+    <span>⚠ AI not configured — Role and Stack won't work until you add an API key or buy credits.</span>
+    <div style="display:flex;gap:8px">
+      <button onclick="showView('settings')" style="padding:3px 10px;background:rgba(245,166,35,.2);border:1px solid rgba(245,166,35,.4);border-radius:4px;color:var(--yellow);font-size:10px;cursor:pointer;font-family:'DM Mono',monospace">Open Settings</button>
+      <button onclick="document.getElementById('ai-setup-banner').style.display='none'" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px">✕</button>
+    </div>
+  </div>
+
   <div class="main">
     <div class="sidebar">
       <div>
@@ -333,7 +341,7 @@ a{color:var(--acc);text-decoration:none}
             <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">🏛️ All Sponsors</div>
             <button class="addbtn" style="background:none;border:1px solid var(--bd2);color:var(--t1)" onclick="showToast('Export coming soon')">⬇ Export CSV</button>
           </div>
-          <p style="font-size:11px;color:var(--t2);margin-bottom:24px">Browse and search the complete register of UK licensed sponsors. <span id="sponsor-dir-count" style="color:var(--acc)"></span></p>
+          <p style="font-size:11px;color:var(--t2);margin-bottom:24px">Browse and search the complete register of UK licensed sponsors. <span id="sponsor-last-sync" style="color:var(--acc)"></span> <span id="sponsor-dir-count" style="display:none;"></span></p>
           
           <div class="dir-layout">
             <div class="dir-sidebar">
@@ -408,8 +416,17 @@ a{color:var(--acc);text-decoration:none}
 
               <div style="background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:14px">
                 <div style="font-weight:700;font-size:13px;font-family:'Syne',sans-serif;margin-bottom:4px;color:#4f8ef7">No API Key? Buy the £1 Starter Pack</div>
-                <div style="font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.5">Get 50 AI generation credits instantly. We route your requests securely through our own enterprise keys. Zero configuration required.</div>
-                <!-- STRIPE PAYMENT LINK HERE -->
+                
+                <div style="background:var(--s3);border-radius:var(--r2);padding:12px 14px;margin-bottom:12px;font-size:11px;color:var(--t2);line-height:1.8">
+                  <div style="font-weight:600;color:var(--t1);margin-bottom:6px">What you get for £1:</div>
+                  • Ask Role to find you roles → <span style="color:var(--acc)">1 credit</span><br>
+                  • Ask Stack to draft a message → <span style="color:var(--acc)">1 credit</span><br>
+                  • Generate a tailored CV → <span style="color:var(--acc)">1 credit</span><br>
+                  • Run an interview prep session → <span style="color:var(--acc)">1 credit</span><br><br>
+                  <strong style="color:var(--t1)">50 credits ≈ 2 weeks of active job searching.</strong><br>
+                  No subscription. Top up anytime for £1.
+                </div>
+
                 <button class="addbtn" style="background:#4f8ef7;color:#fff;width:100%" onclick="window.open('https://buy.stripe.com/test_...', '_blank')">Buy 50 Credits for £1 ↗</button>
               </div>
             </div>
@@ -472,6 +489,9 @@ a{color:var(--acc);text-decoration:none}
               Rolestack is free because you securely bring your own key.<br>
               <a href="https://console.anthropic.com" target="_blank" style="color:var(--acc)">Click here to generate one</a>.
             </div>
+            <div style="text-align:center;margin-top:10px;padding:8px;background:rgba(168,224,99,.06);border:1px dashed rgba(168,224,99,.2);border-radius:6px;font-size:11px;color:var(--t2)">
+              🎁 You have <strong style="color:var(--acc)">10 free credits</strong> to try Role and Stack — no API key needed to get started.
+            </div>
           </div>
         </div>
         <div class="modal-actions">
@@ -531,6 +551,10 @@ function showToast(msg){
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
 }
 
+function hasAIConfigured() {
+  return (apiKey && apiKey.length > 10) || (userCredits > 0);
+}
+
 // ══════════════════════════════════════════════════════
 // DYNAMIC UI & BILLING LOGIC
 // ══════════════════════════════════════════════════════
@@ -546,15 +570,13 @@ function updateCreditUI() {
   const creditBadge = document.getElementById('header-credits-display');
   
   if (apiKey) {
-    // Has API key -> Free BYOK mode
     byokBadge.style.display = 'inline-block';
     creditBadge.style.display = 'none';
     document.getElementById('billing-ui-free').style.display = 'block';
     document.getElementById('billing-ui-paid').style.display = 'none';
   } else {
-    // No API key -> Check DB for Tier/Credits
     byokBadge.style.display = 'none';
-    if (userTier === 'starter') {
+    if (userTier === 'starter' || userCredits > 0) {
         creditBadge.textContent = `${userCredits} Credits remaining`;
         creditBadge.style.display = 'inline-block';
         creditBadge.style.color = userCredits > 10 ? 'var(--green)' : 'var(--red)';
@@ -563,7 +585,6 @@ function updateCreditUI() {
         document.getElementById('billing-ui-paid').style.display = 'block';
         document.getElementById('settings-credit-count').textContent = `${userCredits} Credits`;
     } else {
-        // Free user, no credits, no key
         creditBadge.textContent = `0 Credits — Setup Required`;
         creditBadge.style.display = 'inline-block';
         creditBadge.style.color = 'var(--t3)';
@@ -574,11 +595,23 @@ function updateCreditUI() {
   }
 }
 
+function updateRSCreditBar() {
+  const bar = document.getElementById('rs-credit-bar');
+  const count = document.getElementById('rs-credit-count');
+  if (!bar || !count) return;
+  if (apiKey) {
+    bar.style.display = 'none'; // BYOK user — no need to show
+  } else {
+    bar.style.display = 'block';
+    count.textContent = userCredits + ' credits remaining';
+    count.style.color = userCredits > 10 ? 'var(--t3)' : userCredits > 0 ? 'var(--yellow)' : 'var(--red)';
+  }
+}
+
 // ══════════════════════════════════════════════════════
 // CORE LLM ROUTER (BYOK vs HOSTED)
 // ══════════════════════════════════════════════════════
 async function callAI(prompt, maxTokens = 800) {
-  // PATH 1: BYOK (Direct from Browser to Anthropic)
   if (apiKey) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -599,15 +632,13 @@ async function callAI(prompt, maxTokens = 800) {
     return data.content[0].text;
   }
   
-  // PATH 2: Hosted Edge Function (Deducts credits)
-  if (userTier !== 'starter' || userCredits <= 0) {
+  if ((userTier !== 'starter' && userTier !== 'free') || userCredits <= 0) {
     throw new Error("No credits remaining. Add your own API key in Settings, or buy a £1 Starter Pack.");
   }
 
   const { data: { session } } = await sb.auth.getSession();
   if (!session) throw new Error("Session expired.");
 
-  // This calls the Supabase Edge function (we will deploy this next!)
   const res = await fetch('https://swmxqjygsnxqtffwlahe.supabase.co/functions/v1/rs-chat', {
     method: 'POST',
     headers: {
@@ -624,7 +655,6 @@ async function callAI(prompt, maxTokens = 800) {
 
   const data = await res.json();
   
-  // Instantly update the local UI credit counter
   if (data.credits_remaining !== undefined) {
     userCredits = data.credits_remaining;
     updateCreditUI();
@@ -651,7 +681,7 @@ async function loadProfile(){
     apiKey=data.anthropic_key||'';
     userProfile=data.profile_text||'';
     userTier = data.tier || 'free';
-    userCredits = data.credits || 0;
+    userCredits = data.credits !== undefined && data.credits !== null ? data.credits : 0;
   }
   
   updateCreditUI();
@@ -666,10 +696,19 @@ async function loadSponsorCount() {
   const { count } = await sb.from('uk_sponsors').select('*', { count: 'exact', head: true });
   sponsorCount = count || 0;
   
-  const { data } = await sb.from('uk_sponsors').select('created_at').limit(1);
-  if (data && data.length > 0 && data[0].created_at) {
-    const d = new Date(data[0].created_at);
-    sponsorLastUpdated = d.toLocaleDateString('en-GB') + ' at ' + d.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+  const { data: syncData } = await sb
+    .from('sync_log')
+    .select('synced_at, row_count')
+    .eq('table_name', 'uk_sponsors')
+    .order('synced_at', { ascending: false })
+    .limit(1);
+
+  if (syncData && syncData.length > 0) {
+    const d = new Date(syncData[0].synced_at);
+    const formatted = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const el = document.getElementById('sponsor-last-sync');
+    if (el) el.textContent = `Register last synced: ${formatted} · ${(syncData[0].row_count || 0).toLocaleString()} sponsors`;
+    sponsorLastUpdated = formatted;
   }
 
   document.getElementById('st-sponsors').textContent = sponsorCount.toLocaleString();
@@ -752,6 +791,14 @@ async function submitAuth(){
       const name=document.getElementById('auth-name').value.trim()||email.split('@')[0];
       res=await sb.auth.signUp({email,password:pw,options:{data:{name}}});
       if(res.data?.user&&!res.data?.session){alert('Check email to confirm');return;}
+      if(res.data?.user) {
+        await sb.from('profiles').upsert({
+          id: res.data.user.id,
+          email: email,
+          tier: 'free',
+          credits: 10
+        });
+      }
     }else{
       res=await sb.auth.signInWithPassword({email,password:pw});
     }
@@ -769,6 +816,13 @@ async function onLogin(user){
   generateMarketUI();
   await loadUserData();
   await loadProfile();
+  
+  if (!hasAIConfigured()) {
+    document.getElementById('ai-setup-banner').style.display = 'flex';
+  } else {
+    document.getElementById('ai-setup-banner').style.display = 'none';
+  }
+  
   loadSponsorCount();
 }
 
@@ -813,6 +867,9 @@ async function saveAllKeys() {
      showToast('Key Saved. You are on Free BYOK Mode.');
      updateCreditUI();
   }
+  if (hasAIConfigured()) {
+     document.getElementById('ai-setup-banner').style.display = 'none';
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -842,8 +899,16 @@ function speakText(text, agentName) {
 function toggleRSChat() {
   const panel = document.getElementById('rs-chat-panel');
   panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
-  if(panel.style.display === 'flex' && chatHistory.length === 0) {
-     addChatMsg('system', "I'm ready. I will use " + (apiKey ? "your API key." : `your hosted credits (${userCredits} left).`));
+  if(panel.style.display === 'flex') {
+     updateRSCreditBar();
+     if(chatHistory.length === 0) {
+       if(!hasAIConfigured()) {
+         const warnHTML = `⚠️ Set up AI first<br><br>To use Role and Stack you need one of:<br><br><b>Option A — Free: Paste your own API key</b><br>Go to Settings → AI Engine → paste your Claude, ChatGPT or Gemini key.<br>Get a free Claude key at console.anthropic.com<br><br><b>Option B — £1 Starter Pack</b><br>No API key needed. Buy 50 credits instantly.<br><br><button class="addbtn" style="background:#4f8ef7;color:#fff;border:none;margin-top:4px" onclick="window.open('https://buy.stripe.com/test_...', '_blank')">Buy £1 Starter Pack →</button>`;
+         addChatMsg('system_warning', warnHTML);
+       } else {
+         addChatMsg('system', "I'm ready. I will use " + (apiKey ? "your API key." : `your hosted credits (${userCredits} left).`));
+       }
+     }
   }
 }
 
@@ -851,7 +916,14 @@ function addChatMsg(role, text) {
   const msgs = document.getElementById('rs-messages');
   const bubble = document.createElement('div');
   bubble.style.cssText = `background:var(${role==='user'?'--s3':'--bg'});padding:8px;border-radius:6px;font-size:12px;color:var(--t1);margin-bottom:6px`;
-  bubble.textContent = text;
+  
+  if (role === 'system_warning') {
+      bubble.style.color = 'var(--yellow)';
+      bubble.innerHTML = text;
+  } else {
+      bubble.textContent = text;
+  }
+  
   msgs.appendChild(bubble);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -870,6 +942,7 @@ async function sendRSChat() {
   } catch(e) {
     addChatMsg('agent', `❌ Error: ${e.message}`);
   }
+  updateRSCreditBar();
 }
 
 sb.auth.getSession().then(({data}) => { if(data.session) onLogin(data.session.user); else showLanding(); });
@@ -882,6 +955,12 @@ sb.auth.getSession().then(({data}) => { if(data.session) onLogin(data.session.us
     <button onclick="toggleRSChat()" style="background:none;border:none;color:var(--t2);cursor:pointer">✕</button>
   </div>
   <div id="rs-messages" style="flex:1;overflow-y:auto;padding:12px;"></div>
+  
+  <div id="rs-credit-bar" style="padding:5px 12px;font-size:10px;color:var(--t3);border-top:1px solid var(--bd);display:none">
+    <span id="rs-credit-count">0 credits remaining</span> · 
+    <a onclick="showView('settings');toggleRSChat()" style="color:var(--acc);cursor:pointer">Add key or buy more</a>
+  </div>
+
   <div style="padding:10px;border-top:1px solid var(--bd);display:flex;gap:6px">
     <input id="rs-input" style="flex:1;background:var(--s3);border:1px solid var(--bd2);border-radius:6px;padding:8px;color:var(--t1)" onkeydown="if(event.key==='Enter')sendRSChat()">
     <button onclick="sendRSChat()" style="padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:6px;cursor:pointer">↑</button>
