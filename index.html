@@ -1739,9 +1739,7 @@ function openBoard(tmpl){
   const slug=q.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
   window.open(tmpl.replace(/\{q\}/g,encodeURIComponent(q)).replace(/\{loc\}/g,encodeURIComponent(loc)).replace(/\{slug\}/g,slug).replace(/\{len\}/g,slug.length),'_blank');
 }
-async function doSearch(){ multiSearch(); /* legacy wrapper */
-  else{const boards=searchMktMode==='dubai'?DUBAI_BOARDS:UK_BOARDS;boards.forEach((b,i)=>setTimeout(()=>openBoard(b.u),i*350));}
-}
+function doSearch(){ multiSearch(); }
 
 // ══════════════════════════════════════════════════════
 // MULTI-SOURCE JOB SEARCH
@@ -3145,6 +3143,27 @@ function checkOnboarding() {
     setTimeout(() => openModal('onboarding-modal'), 800);
   }
 }
+
+// ══════════════════════════════════════════════════════
+// BOOTSTRAP — runs on page load
+// ══════════════════════════════════════════════════════
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session?.user) {
+    if (!currentUser || currentUser.id !== session.user.id) {
+      await onLogin(session.user);
+    }
+  } else if (event === 'SIGNED_OUT') {
+    currentUser = null;
+    roles = []; conns = []; interviews = [];
+    showLanding();
+  }
+});
+
+sb.auth.getSession().then(({data}) => {
+  if (data.session) onLogin(data.session.user);
+  else showLanding();
+});
+
 
 </script>
 
