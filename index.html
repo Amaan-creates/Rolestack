@@ -2437,7 +2437,8 @@ function showView(v){
   const nb=document.getElementById('n-'+v);if(nb)nb.classList.add('on');
   document.getElementById('cmd-res').style.display='none';
   if(v==='interviews'){renderInterviews();populateCompanySelect();}
-  if(v==='search'){renderBoards();}
+  if(v==='search'){renderBoards();switchSearchMkt('live',document.getElementById('st-live-tab'));}
+  if(v==='sponsors'){loadSponsorCount();}
 }
 function filterBoard(f,el){
   boardFilter=f;
@@ -3025,7 +3026,7 @@ function speakText(text) {
 // ══════════════════════════════════════════════════════
 // SPONSOR DIRECTORY SEARCH
 // ══════════════════════════════════════════════════════
-const debouncedDirSearch = debounce(() => runDirSearch(), 400);
+const debouncedDirSearch = debounce(function() { runDirSearch(); }, 400);
 let dirPage = 0;
 
 async function runDirSearch() {
