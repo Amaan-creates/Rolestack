@@ -1003,9 +1003,11 @@ let roles=[], conns=[], interviews=[], discResults=[];
 let selRole=null, boardFilter='all', searchMkt='uk', curBoard='uk', discFilter='all';
 let apiKey='', adzunaAppId='', adzunaAppKey='', userProfile=DEFAULT_PROFILE, cvData=null, cvRawText='';
 let gcalClientId='', gcalToken=null, gmailToken=null;
-let sponsorCount=0;
+let sponsorCount=0, sponsorLastUpdated='';
+let userTier='free', userCredits=0;
 let authMode='login';
 let dragId=null;
+let searchMktMode='live';
 
 // ══════════════════════════════════════════════════════
 // AUTH
