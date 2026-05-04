@@ -779,9 +779,16 @@ a{color:var(--acc);text-decoration:none}
           </div>
           <div class="ss">
             <h3>Your Profile</h3>
-            <p>Used for all AI tailoring — CV generation, outreach, interview prep. The more detail, the better the output.</p>
-            <textarea id="profile-input"></textarea>
-            <button class="savebtn" onclick="saveProfile()">Save profile</button>
+            <p style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6">Powers all AI — CV tailoring, outreach drafts, interview prep. Saved to your account and editable anytime.</p>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <button class="savebtn" onclick="openEditProfile()" style="flex:1">✏️ Edit profile</button>
+              <button class="savebtn" style="background:var(--s3);border:1px solid var(--bd2);color:var(--t1);font-size:11px" onclick="toggleRawProfile()">Raw text</button>
+            </div>
+            <div id="profile-preview" style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:12px;font-size:11px;color:var(--t2);line-height:1.8;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
+            <div id="raw-profile-wrap" style="display:none">
+              <textarea id="profile-input" style="margin-bottom:6px"></textarea>
+              <button class="savebtn" onclick="saveProfile()">Save raw profile</button>
+            </div>
           </div>
           <div class="ss">
             <h3>Google Calendar Sync</h3>
@@ -1174,6 +1181,10 @@ async function loadProfile(){
     showToast('Welcome! Please complete your profile and add your API keys.');
   }
   document.getElementById('api-key-input').value=apiKey?'••••••••••••':'';
+  // Mark as onboarded in localStorage if they have a real Supabase profile
+  if(data && data.profile_text && data.profile_text.length > 50 && data.profile_text !== DEFAULT_PROFILE){
+    localStorage.setItem('rs_onboarded_' + currentUser.id, 'true');
+  }
   const cd=document.getElementById('credit-display');
   if(cd) cd.textContent=userCredits;
   const cf=document.getElementById('credit-bar-fill');
@@ -1181,6 +1192,8 @@ async function loadProfile(){
   document.getElementById('adzuna-id-input').value=adzunaAppId;
   document.getElementById('adzuna-key-input').value=adzunaAppKey?'••••••••••••':'';
   document.getElementById('profile-input').value=userProfile;
+  const pv=document.getElementById('profile-preview');
+  if(pv)pv.textContent=userProfile;
   document.getElementById('cv-in').value=userProfile.split('\n').slice(2).join('\n');
   updateApiDot();
 }
@@ -3203,10 +3216,11 @@ async function obComplete() {
       id: currentUser.id,
       profile_text: profile,
       name: name,
+      onboarded: true,
     });
   }
 
-  localStorage.setItem('rs_onboarded', 'true');
+  localStorage.setItem('rs_onboarded_' + (currentUser?.id || ''), 'true');
   localStorage.setItem('rs_profile', profile);
   document.getElementById('profile-input').value = profile;
   closeModal('onboarding-modal');
@@ -3217,8 +3231,10 @@ async function obComplete() {
 }
 
 function checkOnboarding() {
-  const done = localStorage.getItem('rs_onboarded');
-  if (!done) {
+  // Check Supabase profile first — if they have a real profile, skip onboarding
+  const hasProfile = userProfile && userProfile.length > 50 && userProfile !== DEFAULT_PROFILE;
+  const localDone = localStorage.getItem('rs_onboarded_' + (currentUser?.id || ''));
+  if (!hasProfile && !localDone) {
     setTimeout(() => openModal('onboarding-modal'), 800);
   }
 }
@@ -3420,6 +3436,73 @@ function saveDigestPrefs() {
 }
 
 
+function toggleRawProfile() {
+  const wrap = document.getElementById('raw-profile-wrap');
+  const preview = document.getElementById('profile-preview');
+  if(wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+}
+
+function openEditProfile() {
+  // Pre-fill from current profile
+  const lines = userProfile.split('\n');
+  const get = (prefix) => lines.find(l => l.startsWith(prefix))?.replace(prefix, '').trim() || '';
+  const el = (id, val) => { const e = document.getElementById(id); if(e) e.value = val; };
+  el('ep-name', get('Name: '));
+  el('ep-role', get('Target role: ').replace(/^(Junior|Mid-level|Senior|Director)\s/, ''));
+  el('ep-salary', get('Target salary: '));
+  el('ep-visa', get('Visa: '));
+  el('ep-skills', get('Key skills: '));
+  // Extract highlights
+  const bgStart = userProfile.indexOf('Background:\n');
+  const bgEnd = userProfile.indexOf('\nKey skills:');
+  if(bgStart > -1) {
+    document.getElementById('ep-highlights').value = userProfile.substring(bgStart + 12, bgEnd > -1 ? bgEnd : undefined).trim();
+  }
+  openModal('edit-profile-modal');
+}
+
+async function saveStructuredProfile() {
+  const name = document.getElementById('ep-name')?.value?.trim() || '';
+  const role = document.getElementById('ep-role')?.value?.trim() || '';
+  const salary = document.getElementById('ep-salary')?.value?.trim() || '';
+  const visa = document.getElementById('ep-visa')?.value || '';
+  const highlights = document.getElementById('ep-highlights')?.value?.trim() || '';
+  const skills = document.getElementById('ep-skills')?.value?.trim() || '';
+  const extra = document.getElementById('ep-extra')?.value?.trim() || '';
+
+  const profile = [
+    name ? 'Name: ' + name : '',
+    role ? 'Target role: ' + role : '',
+    salary ? 'Target salary: ' + salary : '',
+    visa ? 'Visa: ' + visa : '',
+    highlights ? 'Background:\n' + highlights : '',
+    skills ? 'Key skills: ' + skills : '',
+    extra ? 'Additional: ' + extra : '',
+  ].filter(Boolean).join('\n');
+
+  userProfile = profile;
+  document.getElementById('profile-input').value = profile;
+
+  // Update preview
+  const preview = document.getElementById('profile-preview');
+  if(preview) preview.textContent = profile;
+
+  // Save to Supabase
+  if(currentUser) {
+    await sb.from('profiles').upsert({
+      id: currentUser.id,
+      profile_text: profile,
+      name: name,
+      onboarded: true,
+    });
+    localStorage.setItem('rs_onboarded_' + currentUser.id, 'true');
+  }
+
+  closeModal('edit-profile-modal');
+  showToast('✅ Profile saved');
+}
+
+
 // ══════════════════════════════════════════════════════
 // BOOTSTRAP — runs on page load
 // ══════════════════════════════════════════════════════
@@ -3613,6 +3696,42 @@ sb.auth.getSession().then(({data}) => {
     </div>
   </div>
 </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="overlay" id="edit-profile-modal">
+    <div class="modal" style="width:500px;max-height:90vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="modal-title" style="margin-bottom:0">✏️ Edit Profile</div>
+        <button class="btn-sm" onclick="closeModal('edit-profile-modal')">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="ff full"><label>Full name</label><input id="ep-name" placeholder="Amaan Aslam"></div>
+        <div class="ff"><label>Target role</label><input id="ep-role" placeholder="Enterprise AE"></div>
+        <div class="ff"><label>Target salary</label><input id="ep-salary" placeholder="£80,000"></div>
+        <div class="ff full"><label>Visa status</label>
+          <select id="ep-visa" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace;width:100%">
+            <option>Need UK Skilled Worker sponsorship</option>
+            <option>Right to work everywhere</option>
+            <option>Golden Visa holder (UAE)</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="ff full"><label>Career highlights</label>
+          <textarea id="ep-highlights" style="height:90px;resize:none" placeholder="3 bullet points — e.g.&#10;£1.4M pipeline at Terrapinn, closed IBM, SAP, Verizon&#10;Co-founded Swizio SaaS, exited 2024 £50k&#10;LSE MSc AI, Distinction"></textarea>
+        </div>
+        <div class="ff full"><label>Key skills (comma separated)</label>
+          <input id="ep-skills" placeholder="MEDDPICC, enterprise SaaS, cold outbound, AI fluency">
+        </div>
+        <div class="ff full"><label>Additional context</label>
+          <textarea id="ep-extra" style="height:60px;resize:none" placeholder="Languages, target sectors, anything else AI should know..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="addbtn" onclick="saveStructuredProfile()">Save profile</button>
+        <button class="ghost-btn" onclick="closeModal('edit-profile-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
