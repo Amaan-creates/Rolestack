@@ -619,6 +619,7 @@ a{color:var(--acc);text-decoration:none}
               <span id="src-arbeitnow" class="ms-src ms-src-on" style="background:rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.3)" onclick="toggleSource('arbeitnow')">Arbeitnow</span>
               <span id="src-remotive" class="ms-src ms-src-on" style="background:rgba(168,85,247,.12);color:#a855f7;border:1px solid rgba(168,85,247,.3)" onclick="toggleSource('remotive')">Remotive</span>
               <span id="src-reed" class="ms-src ms-src-on" style="background:rgba(239,69,69,.12);color:#ef4545;border:1px solid rgba(239,69,69,.3)" onclick="toggleSource('reed')">Reed</span>
+              <span id="src-rocketship" class="ms-src ms-src-on" style="background:rgba(20,184,166,.12);color:#14b8a6;border:1px solid rgba(20,184,166,.3)" onclick="toggleSource('rocketship')">Rocketship</span>
               <div style="flex:1"></div>
               <select id="ms-sort" onchange="renderMultiResults()" style="background:var(--s2);border:1px solid var(--bd2);border-radius:4px;padding:3px 8px;color:var(--t2);font-size:11px;outline:none;font-family:'DM Mono',monospace">
                 <option value="date">Newest first</option>
@@ -960,16 +961,18 @@ const SEQ_STEPS=['View profile','Like a post','Leave a comment','Connect (person
 const UK_BOARDS=[
   {n:'LinkedIn',i:'💼',d:'Global #1',u:'https://www.linkedin.com/jobs/search/?keywords={q}&location={loc}'},
   {n:'Indeed UK',i:'🔍',d:'Largest UK board',u:'https://uk.indeed.com/jobs?q={q}&l={loc}'},
-  {n:'Glassdoor',i:'🏢',d:'Jobs + reviews',u:'https://www.glassdoor.co.uk/Job/london-jobs-SRCH_IL.0,6_IC2671300.htm?sc.keyword={q}'},
+  {n:'Reed',i:'🟥',d:'300k+ UK roles',u:'https://www.reed.co.uk/jobs/{slug}-jobs-in-{loc}'},
+  {n:'Otta',i:'🎯',d:'London tech & SaaS',u:'https://otta.com/jobs?q={q}'},
   {n:'Adzuna',i:'📡',d:'Aggregator',u:'https://www.adzuna.co.uk/search?q={q}&loc={loc}'},
-  {n:'startup.jobs',i:'🚀',d:'Startups',u:'https://startup.jobs/?q={q}'},
+  {n:'UK Visa Jobs',i:'🛂',d:'Sponsored roles only',u:'https://www.ukvisajobs.com/?q={q}'},
+  {n:'Remote Rocketship',i:'🚀',d:'Visa-sponsored remote',u:'https://remoterocketship.com/jobs?search={q}&country=United+Kingdom'},
   {n:'Wellfound',i:'😇',d:'Startup ecosystem',u:'https://wellfound.com/jobs?q={q}&l=London%2C+England'},
-  {n:'UK Visa Jobs',i:'🇬🇧',d:'Sponsorship roles',u:'https://www.ukvisajobs.com/?q={q}'},
-  {n:'Otta',i:'🎯',d:'London tech',u:'https://otta.com/jobs?q={q}'},
+  {n:'Glassdoor',i:'🏢',d:'Jobs + salary data',u:'https://www.glassdoor.co.uk/Job/london-jobs-SRCH_IL.0,6_IC2671300.htm?sc.keyword={q}'},
   {n:'Hired',i:'⚡',d:'Tech & sales',u:'https://hired.com/search?q={q}&location=London'},
   {n:'Hiring Cafe',i:'☕',d:'Global startups',u:'https://hiring.cafe/?search={q}'},
-  {n:'Remote OK',i:'🌍',d:'Remote-first',u:'https://remoteok.com/remote-jobs?q={q}'},
-  {n:'CV-Library',i:'📋',d:'UK jobs',u:'https://www.cv-library.co.uk/search-jobs?q={q}&loc={loc}'},
+  {n:'CV-Library',i:'📋',d:'UK jobs board',u:'https://www.cv-library.co.uk/search-jobs?q={q}&loc={loc}'},
+  {n:'Totaljobs',i:'🔎',d:'UK mainstream',u:'https://www.totaljobs.com/jobs/{slug}/in-{loc}'},
+  {n:'CWJobs',i:'💻',d:'UK tech specialist',u:'https://www.cwjobs.co.uk/jobs/{slug}/in-{loc}'},
 ];
 const DUBAI_BOARDS=[
   {n:'LinkedIn UAE',i:'💼',d:'#1 for MENA AE roles',u:'https://www.linkedin.com/jobs/search/?keywords={q}&location=Dubai%2C+UAE'},
@@ -1746,7 +1749,7 @@ function doSearch(){ multiSearch(); }
 // MULTI-SOURCE JOB SEARCH
 // ══════════════════════════════════════════════════════
 let msResults = [];
-let msActiveSources = {adzuna:true, himalayas:true, arbeitnow:true, remotive:true, reed:true};
+let msActiveSources = {adzuna:true, himalayas:true, arbeitnow:true, remotive:true, reed:true, rocketship:true};
 const REED_API_KEY = '54f0d82a-b064-464e-9903-bec9c63e07be';
 
 function toggleSource(src){
@@ -1783,12 +1786,13 @@ async function multiSearch(){
     </div>`).join('');
 
   // Hit all sources simultaneously
-  const [adzunaRes, himalayasRes, arbeitnowRes, remotiveRes, reedRes] = await Promise.allSettled([
+  const [adzunaRes, himalayasRes, arbeitnowRes, remotiveRes, reedRes, rocketRes] = await Promise.allSettled([
     msActiveSources.adzuna ? fetchAdzuna(q, loc) : Promise.resolve([]),
     msActiveSources.himalayas ? fetchHimalayas(q, loc) : Promise.resolve([]),
     msActiveSources.arbeitnow ? fetchArbeitnow(q, loc) : Promise.resolve([]),
     msActiveSources.remotive ? fetchRemotive(q) : Promise.resolve([]),
     msActiveSources.reed ? fetchReed(q, loc) : Promise.resolve([]),
+    msActiveSources.rocketship ? fetchRemoteRocketship(q) : Promise.resolve([]),
   ]);
 
   const all = [
@@ -1797,6 +1801,7 @@ async function multiSearch(){
     ...(arbeitnowRes.status==='fulfilled' ? arbeitnowRes.value : []),
     ...(remotiveRes.status==='fulfilled' ? remotiveRes.value : []),
     ...(reedRes.status==='fulfilled' ? reedRes.value : []),
+    ...(rocketRes.status==='fulfilled' ? rocketRes.value : []),
   ];
 
   // Deduplicate by title+company
@@ -1858,6 +1863,7 @@ function renderMultiResults(){
     greenhouse:'rgba(100,100,100,.1);color:var(--t2);border:1px solid var(--bd2)',
     lever:'rgba(100,100,100,.1);color:var(--t2);border:1px solid var(--bd2)',
     reed:'rgba(239,69,69,.12);color:#ef4545;border:1px solid rgba(239,69,69,.3)',
+    rocketship:'rgba(20,184,166,.12);color:#14b8a6;border:1px solid rgba(20,184,166,.3)',
   };
   const SRC_BORDER = {
     adzuna:'#185FA5', himalayas:'#3B6D11', arbeitnow:'#BA7517',
@@ -2003,6 +2009,29 @@ async function fetchRemotive(q){
   }catch(e){ return []; }
 }
 
+
+
+async function fetchRemoteRocketship(q) {
+  // Remote Rocketship - visa-sponsored remote roles
+  // Uses their public job feed
+  try {
+    const res = await fetch(`https://remoterocketship.com/jobs.json?search=${encodeURIComponent(q)}&country=United+Kingdom&limit=8`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.jobs||data||[]).slice(0,8).map(j=>({
+      source:'rocketship',
+      company: j.company||j.company_name||'Unknown',
+      title: j.title||j.job_title||'',
+      description: (j.description||j.snippet||'').replace(/<[^>]*>/g,'').substring(0,180),
+      salary: j.salary||'',
+      salaryNum: 0,
+      location: 'Remote (UK)',
+      url: j.url||j.apply_url||'',
+      market: 'uk',
+      sponsorStatus: null,
+    }));
+  } catch(e) { return []; }
+}
 
 async function fetchReed(q, loc){
   try{
