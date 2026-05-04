@@ -469,6 +469,15 @@ a{color:var(--acc);text-decoration:none}
         <div class="si" onclick="filterBoard('offered',this)"><div class="si-l"><div class="dot" style="background:var(--acc)"></div>Offers</div><span class="cnt" id="cnt-offered">0</span></div>
       </div>
       <div>
+        <div class="sl">Visa Filter</div>
+        <div class="si" id="s-sponsor-only" onclick="toggleSponsorFilter(this)">
+          <div class="si-l"><span style="font-size:11px">🏛</span> Sponsors only</div>
+          <div id="sponsor-toggle-dot" style="width:28px;height:14px;background:var(--s3);border-radius:7px;border:1px solid var(--bd2);position:relative;transition:.2s;flex-shrink:0">
+            <div id="sponsor-toggle-knob" style="position:absolute;top:1px;left:1px;width:10px;height:10px;background:var(--t3);border-radius:50%;transition:.2s"></div>
+          </div>
+        </div>
+      </div>
+      <div>
         <div class="sl">Follow-ups</div>
         <div class="si" onclick="filterBoard('stale7',this)"><div class="si-l"><div class="dot" style="background:var(--yellow)"></div>7-day stale</div><span class="cnt hot" id="cnt-stale7">0</span></div>
         <div class="si" onclick="filterBoard('stale14',this)"><div class="si-l"><div class="dot" style="background:var(--red)"></div>14-day stale</div><span class="cnt hot" id="cnt-stale14">0</span></div>
@@ -619,6 +628,7 @@ a{color:var(--acc);text-decoration:none}
               <span id="src-arbeitnow" class="ms-src ms-src-on" style="background:rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.3)" onclick="toggleSource('arbeitnow')">Arbeitnow</span>
               <span id="src-remotive" class="ms-src ms-src-on" style="background:rgba(168,85,247,.12);color:#a855f7;border:1px solid rgba(168,85,247,.3)" onclick="toggleSource('remotive')">Remotive</span>
               <span id="src-reed" class="ms-src ms-src-on" style="background:rgba(239,69,69,.12);color:#ef4545;border:1px solid rgba(239,69,69,.3)" onclick="toggleSource('reed')">Reed</span>
+              <span id="src-huntuk" class="ms-src ms-src-on" style="background:rgba(168,224,99,.12);color:var(--acc);border:1px solid rgba(168,224,99,.3)" onclick="toggleSource('huntuk')">Hunt UK</span>
               <span id="src-rocketship" class="ms-src ms-src-on" style="background:rgba(20,184,166,.12);color:#14b8a6;border:1px solid rgba(20,184,166,.3)" onclick="toggleSource('rocketship')">Rocketship</span>
               <div style="flex:1"></div>
               <select id="ms-sort" onchange="renderMultiResults()" style="background:var(--s2);border:1px solid var(--bd2);border-radius:4px;padding:3px 8px;color:var(--t2);font-size:11px;outline:none;font-family:'DM Mono',monospace">
@@ -973,6 +983,8 @@ const UK_BOARDS=[
   {n:'CV-Library',i:'📋',d:'UK jobs board',u:'https://www.cv-library.co.uk/search-jobs?q={q}&loc={loc}'},
   {n:'Totaljobs',i:'🔎',d:'UK mainstream',u:'https://www.totaljobs.com/jobs/{slug}/in-{loc}'},
   {n:'CWJobs',i:'💻',d:'UK tech specialist',u:'https://www.cwjobs.co.uk/jobs/{slug}/in-{loc}'},
+  {n:'Hunt UK Visas',i:'🎯',d:'Visa sponsors only',u:'https://huntukvisasponsors.com/jobs?q={q}'},
+  {n:'Tier2 Sponsors',i:'🛂',d:'Skilled Worker jobs',u:'https://tier2sponsors.com/jobs?search={q}'},
 ];
 const DUBAI_BOARDS=[
   {n:'LinkedIn UAE',i:'💼',d:'#1 for MENA AE roles',u:'https://www.linkedin.com/jobs/search/?keywords={q}&location=Dubai%2C+UAE'},
@@ -1400,6 +1412,7 @@ function openPanel(id,mkt){
       <button class="btn-sm" onclick="prefillCV('${j.co.replace(/'/g,"\\'")}','${j.role.replace(/'/g,"\\'")}')">Tailor CV</button>
       <button class="btn-sm" onclick="markFollowedUp(${j.id},'${mkt}')">✓ Followed up</button>
       <button class="btn-sm" onclick="extractContacts(${j.id})">⊕ Extract contacts</button>
+      <button class="btn-sm" onclick="showLinkedInGuide('${j.co.replace(/'/g,"\'")}','${j.role.replace(/'/g,"\'")}','${j.market}')">🔗 LinkedIn outreach</button>
       <button class="btn-sm dng" onclick="deleteRole(${j.id})">Remove</button>
     </div>`;
   renderBoard(mkt);
@@ -1449,6 +1462,15 @@ async function addRole(){
   closeModal('add-modal');
   ['a-co','a-role','a-date','a-notes','a-salary'].forEach(id=>document.getElementById(id).value='');
   showToast('✅ '+sanitize(co)+' added to pipeline');
+  // Auto-check sponsor status for UK roles
+  const mkt = newRole.market;
+  if(mkt === 'uk'){
+    checkSponsor(co).then(status => {
+      if(status === 'YES') setTimeout(()=>showToast('🏛 '+co+' is a confirmed UK Skilled Worker sponsor ✓'),1500);
+      else if(status === 'NO') setTimeout(()=>showToast('⚠️ '+co+' is NOT on the UK sponsor register'),1500);
+      else setTimeout(()=>showToast('❓ '+co+' — sponsor status unknown'),1500);
+    });
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1749,7 +1771,7 @@ function doSearch(){ multiSearch(); }
 // MULTI-SOURCE JOB SEARCH
 // ══════════════════════════════════════════════════════
 let msResults = [];
-let msActiveSources = {adzuna:true, himalayas:true, arbeitnow:true, remotive:true, reed:true, rocketship:true};
+let msActiveSources = {adzuna:true, himalayas:true, arbeitnow:true, remotive:true, reed:true, rocketship:true, huntuk:true};
 const REED_API_KEY = '54f0d82a-b064-464e-9903-bec9c63e07be';
 
 function toggleSource(src){
@@ -1786,13 +1808,14 @@ async function multiSearch(){
     </div>`).join('');
 
   // Hit all sources simultaneously
-  const [adzunaRes, himalayasRes, arbeitnowRes, remotiveRes, reedRes, rocketRes] = await Promise.allSettled([
+  const [adzunaRes, himalayasRes, arbeitnowRes, remotiveRes, reedRes, rocketRes, huntRes] = await Promise.allSettled([
     msActiveSources.adzuna ? fetchAdzuna(q, loc) : Promise.resolve([]),
     msActiveSources.himalayas ? fetchHimalayas(q, loc) : Promise.resolve([]),
     msActiveSources.arbeitnow ? fetchArbeitnow(q, loc) : Promise.resolve([]),
     msActiveSources.remotive ? fetchRemotive(q) : Promise.resolve([]),
     msActiveSources.reed ? fetchReed(q, loc) : Promise.resolve([]),
     msActiveSources.rocketship ? fetchRemoteRocketship(q) : Promise.resolve([]),
+    msActiveSources.huntuk ? fetchHuntUKVisas(q, loc) : Promise.resolve([]),
   ]);
 
   const all = [
@@ -1802,6 +1825,7 @@ async function multiSearch(){
     ...(remotiveRes.status==='fulfilled' ? remotiveRes.value : []),
     ...(reedRes.status==='fulfilled' ? reedRes.value : []),
     ...(rocketRes.status==='fulfilled' ? rocketRes.value : []),
+    ...(huntRes.status==='fulfilled' ? huntRes.value : []),
   ];
 
   // Deduplicate by title+company
@@ -1864,6 +1888,7 @@ function renderMultiResults(){
     lever:'rgba(100,100,100,.1);color:var(--t2);border:1px solid var(--bd2)',
     reed:'rgba(239,69,69,.12);color:#ef4545;border:1px solid rgba(239,69,69,.3)',
     rocketship:'rgba(20,184,166,.12);color:#14b8a6;border:1px solid rgba(20,184,166,.3)',
+    huntuk:'rgba(168,224,99,.12);color:var(--acc);border:1px solid rgba(168,224,99,.3)',
   };
   const SRC_BORDER = {
     adzuna:'#185FA5', himalayas:'#3B6D11', arbeitnow:'#BA7517',
@@ -2029,6 +2054,30 @@ async function fetchRemoteRocketship(q) {
       url: j.url||j.apply_url||'',
       market: 'uk',
       sponsorStatus: null,
+    }));
+  } catch(e) { return []; }
+}
+
+
+async function fetchHuntUKVisas(q, loc) {
+  // Hunt UK Visa Sponsors - jobs from visa-licensed companies only
+  try {
+    const res = await fetch(`https://huntukvisasponsors.com/api/jobs?q=${encodeURIComponent(q)}&location=${encodeURIComponent(loc)}&limit=10`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.jobs||data.results||data||[]).slice(0,10).map(j=>({
+      source:'huntuk',
+      company: j.company||j.employer||j.organisation_name||'Unknown',
+      title: j.title||j.job_title||'',
+      description: (j.description||j.snippet||'').replace(/<[^>]*>/g,'').substring(0,180),
+      salary: j.salary||'',
+      salaryNum: 0,
+      location: j.location||loc,
+      url: j.url||j.apply_url||j.link||'',
+      market: 'uk',
+      sponsorStatus: 'YES', // All results are confirmed sponsors
     }));
   } catch(e) { return []; }
 }
@@ -2467,7 +2516,7 @@ function showView(v){
   document.getElementById('cmd-res').style.display='none';
   if(v==='interviews'){renderInterviews();populateCompanySelect();}
   if(v==='search'){renderBoards();switchSearchMkt('live',document.getElementById('st-live-tab'));}
-  if(v==='sponsors'){loadSponsorCount();}
+  if(v==='sponsors'){loadSponsorCount();setTimeout(()=>{runDirSearch(true);},300);}
 }
 function filterBoard(f,el){
   boardFilter=f;
@@ -3058,15 +3107,15 @@ function speakText(text) {
 const debouncedDirSearch = debounce(function() { runDirSearch(); }, 400);
 let dirPage = 0;
 
-async function runDirSearch() {
+async function runDirSearch(showAll) {
   const q = (document.getElementById('dir-q')?.value || '').trim();
   const city = (document.getElementById('dir-city')?.value || '').trim();
   const tier = document.getElementById('dir-tier')?.value || '';
   const tbody = document.getElementById('dir-results');
   if (!tbody) return;
 
-  if (!q && !city && !tier) {
-    tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--t3)">Type a company name to search...</td></tr>';
+  if (!q && !city && !tier && !showAll) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--t3)">Type a company name to filter 100,000+ UK sponsors...</td></tr>';
     return;
   }
 
@@ -3075,7 +3124,7 @@ async function runDirSearch() {
   try {
     let query = sb.from('uk_sponsors')
       .select('organisation_name, town, type_and_rating, route')
-      .limit(50);
+      .limit(100);
 
     if (q) query = query.ilike('organisation_name', '%' + q + '%');
     if (city) query = query.ilike('town', '%' + city + '%');
@@ -3173,6 +3222,203 @@ function checkOnboarding() {
     setTimeout(() => openModal('onboarding-modal'), 800);
   }
 }
+
+// ══════════════════════════════════════════════════════
+// SPONSOR-ONLY FILTER
+// ══════════════════════════════════════════════════════
+let sponsorOnlyMode = false;
+
+function toggleSponsorFilter(el) {
+  sponsorOnlyMode = !sponsorOnlyMode;
+  el.classList.toggle('on', sponsorOnlyMode);
+  const knob = document.getElementById('sponsor-toggle-knob');
+  const track = document.getElementById('sponsor-toggle-dot');
+  if(knob) {
+    knob.style.left = sponsorOnlyMode ? '15px' : '1px';
+    knob.style.background = sponsorOnlyMode ? 'var(--acc)' : 'var(--t3)';
+  }
+  if(track) track.style.background = sponsorOnlyMode ? 'rgba(168,224,99,.2)' : 'var(--s3)';
+  render();
+  showToast(sponsorOnlyMode ? '🏛 Showing sponsor companies only' : 'Showing all companies');
+}
+
+// Override getFiltered to respect sponsor mode
+const _origGetFiltered = getFiltered;
+async function getFilteredWithSponsor(mkt) {
+  let r = _origGetFiltered(mkt);
+  if (!sponsorOnlyMode) return r;
+  // Filter to confirmed sponsors only (use local cache for speed)
+  const results = await Promise.all(r.map(async role => {
+    const status = await checkSponsor(role.co);
+    return status === 'YES' ? role : null;
+  }));
+  return results.filter(Boolean);
+}
+
+// ══════════════════════════════════════════════════════
+// LINKEDIN OUTREACH GUIDE
+// ══════════════════════════════════════════════════════
+function showLinkedInGuide(company, role, market) {
+  const enc = encodeURIComponent(company);
+  const roleEnc = encodeURIComponent(role);
+
+  // Build targeted LinkedIn search URLs
+  const searches = [
+    {
+      label: 'Talent Acquisition / Recruiter',
+      desc: 'First port of call — they screen applications and make intro calls',
+      url: `https://www.linkedin.com/search/results/people/?keywords=${enc}+talent+acquisition&titleFilter=%5B%22Talent+Acquisition%22%2C%22Recruiter%22%2C%22People%22%5D`,
+      priority: '🔴 High',
+    },
+    {
+      label: 'Head of Sales / VP Sales',
+      desc: 'Your future manager — connecting before applying adds huge signal',
+      url: `https://www.linkedin.com/search/results/people/?keywords=${enc}+sales+director&titleFilter=%5B%22VP+Sales%22%2C%22Head+of+Sales%22%2C%22Sales+Director%22%5D`,
+      priority: '🔴 High',
+    },
+    {
+      label: 'AE / BDR at the company',
+      desc: 'Peer-level intel — ask about team culture, quota attainment, ramp',
+      url: `https://www.linkedin.com/search/results/people/?keywords=${enc}+account+executive`,
+      priority: '🟡 Medium',
+    },
+    {
+      label: 'Chief People Officer / VP People',
+      desc: 'For visa questions — they own the sponsorship decision',
+      url: `https://www.linkedin.com/search/results/people/?keywords=${enc}+people+officer&titleFilter=%5B%22Chief+People%22%2C%22VP+People%22%2C%22People+Director%22%5D`,
+      priority: '🟡 Medium',
+    },
+    {
+      label: 'CEO / Co-Founder',
+      desc: 'For early-stage companies — direct founder outreach works',
+      url: `https://www.linkedin.com/search/results/people/?keywords=${enc}+founder&titleFilter=%5B%22CEO%22%2C%22Founder%22%2C%22Co-Founder%22%5D`,
+      priority: '🟢 Optional',
+    },
+  ];
+
+  // Outreach message templates
+  const messages = {
+    recruiter: `Hi [Name], I've just applied for the ${role} role at ${company} and wanted to reach out directly. Background: enterprise B2B sales, LSE MSc in AI, and I've built a live GTM OS that I use for all my outreach — amaanaslam.lovable.app. Would love to understand the timeline. [Your name]`,
+    vpsales: `Hi [Name], I'm exploring the ${role} opportunity at ${company} and wanted to connect directly with the commercial team. My background: £1.4M pipeline at Terrapinn, co-founded Swizio (exited 2024), LSE MSc AI. I've built a sales OS that shows how I approach pipeline — amaanaslam.lovable.app. Would love to connect. [Your name]`,
+    ae: `Hi [Name], I'm considering the ${role} role at ${company} and wanted to get a real sense of the team from someone in the seat. Would you be open to a quick chat? Happy to share what I'm working on too. [Your name]`,
+  };
+
+  // Build the overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay on';
+  overlay.id = 'linkedin-guide-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="width:580px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="modal-title" style="margin-bottom:0">🔗 LinkedIn Outreach — ${company}</div>
+        <button class="btn-sm" onclick="document.getElementById('linkedin-guide-overlay').remove()">✕</button>
+      </div>
+
+      <div style="background:rgba(168,224,99,.06);border:1px solid rgba(168,224,99,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:11px;color:var(--t2);line-height:1.7">
+        <strong style="color:var(--acc)">Strategy:</strong> Send connection requests to 3-4 people simultaneously — TA + VP Sales + one AE.
+        Don't wait for one to accept before contacting others. Personalise each message with the company and role.
+      </div>
+
+      <div style="font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Who to find</div>
+
+      ${searches.map(s => `
+        <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-weight:600;font-size:12px">${s.label}</span>
+            <span style="font-size:10px">${s.priority}</span>
+          </div>
+          <div style="font-size:11px;color:var(--t2);margin-bottom:8px">${s.desc}</div>
+          <a href="${s.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:5px 12px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.3);border-radius:4px;color:#4f8ef7;text-decoration:none">
+            🔗 Search on LinkedIn ↗
+          </a>
+        </div>`).join('')}
+
+      <div style="font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">Message templates</div>
+
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:600;margin-bottom:6px">To TA / Recruiter:</div>
+        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:8px">${messages.recruiter}</div>
+        <button class="cpbtn" onclick="navigator.clipboard.writeText(\`${messages.recruiter.replace(/`/g,'\`')}\`).then(()=>showToast('Copied!'))">Copy</button>
+      </div>
+
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:600;margin-bottom:6px">To VP Sales / Head of Sales:</div>
+        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:8px">${messages.vpsales}</div>
+        <button class="cpbtn" onclick="navigator.clipboard.writeText(\`${messages.vpsales.replace(/`/g,'\`')}\`).then(()=>showToast('Copied!'))">Copy</button>
+      </div>
+
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:600;margin-bottom:6px">To current AE / BDR:</div>
+        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:8px">${messages.ae}</div>
+        <button class="cpbtn" onclick="navigator.clipboard.writeText(\`${messages.ae.replace(/`/g,'\`')}\`).then(()=>showToast('Copied!'))">Copy</button>
+      </div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);font-size:11px;color:var(--t3)">
+        💡 Keep all messages under 300 characters — LinkedIn truncates at ~290 chars in the preview. Short = more opens.
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+// ══════════════════════════════════════════════════════
+// WEEKLY DIGEST (UI only — backend = Supabase Edge Fn)
+// ══════════════════════════════════════════════════════
+function showDigestSettings() {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay on';
+  overlay.id = 'digest-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="width:460px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="modal-title" style="margin-bottom:0">📧 Weekly Role Digest</div>
+        <button class="btn-sm" onclick="document.getElementById('digest-overlay').remove()">✕</button>
+      </div>
+      <p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.6">
+        Get a weekly email with new roles matching your profile from all 7 sources — delivered every Monday morning.
+      </p>
+      <div class="ff" style="margin-bottom:12px">
+        <label>Email</label>
+        <input id="digest-email" value="${currentUser?.email || ''}" placeholder="your@email.com">
+      </div>
+      <div class="ff" style="margin-bottom:12px">
+        <label>Default search query</label>
+        <input id="digest-query" value="Enterprise AE" placeholder="e.g. Enterprise AE London">
+      </div>
+      <div class="ff" style="margin-bottom:14px">
+        <label>Market</label>
+        <select id="digest-market" style="background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 9px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
+          <option value="uk">🇬🇧 UK only</option>
+          <option value="dubai">🇦🇪 Dubai only</option>
+          <option value="both">🌍 Both</option>
+        </select>
+      </div>
+      <div style="background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--t2);margin-bottom:14px">
+        ⚙️ Email delivery requires the Supabase weekly-digest Edge Function to be deployed.
+        <a href="https://github.com/Amaan-creates/Rolestack" target="_blank" style="color:#4f8ef7">View setup guide →</a>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="addbtn" onclick="saveDigestPrefs()">Save preferences</button>
+        <button class="ghost-btn" onclick="document.getElementById('digest-overlay').remove()">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+function saveDigestPrefs() {
+  const email = document.getElementById('digest-email')?.value;
+  const query = document.getElementById('digest-query')?.value;
+  const market = document.getElementById('digest-market')?.value;
+  localStorage.setItem('rs_digest', JSON.stringify({email, query, market, enabled:true}));
+  if(currentUser) {
+    sb.from('profiles').update({digest_email: email, digest_query: query, digest_market: market}).eq('id', currentUser.id);
+  }
+  document.getElementById('digest-overlay')?.remove();
+  showToast('✅ Weekly digest preferences saved');
+}
+
 
 // ══════════════════════════════════════════════════════
 // BOOTSTRAP — runs on page load
