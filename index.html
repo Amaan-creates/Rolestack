@@ -2706,8 +2706,7 @@ async function sendRSChat() {
   try {
     const pipelineSummary = roles.slice(0, 15).map(r => 
       `${r.co} (${r.role}) — ${r.status} — ${r.market || 'uk'}`
-    ).join('
-');
+    ).join('|');
     
     const systemPrompt = chatMode === 'role'
       ? `You are Role, an AI job search scout inside Rolestack. Your job is to find new opportunities.
