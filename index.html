@@ -209,6 +209,7 @@ html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Mono'
 .disc-add.added{background:var(--s3);color:var(--t2);cursor:default;border:1px solid var(--bd2)}
 .disc-link{padding:5px 10px;background:none;border:1px solid var(--bd2);color:var(--t2);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 .disc-link:hover{border-color:var(--acc);color:var(--acc)}
+.dir-row:hover{background:var(--s3)}
 .ms-src{display:inline-flex;align-items:center;font-size:10px;padding:3px 9px;border-radius:4px;cursor:pointer;transition:.15s;font-family:'DM Mono',monospace;font-weight:500}
 .ms-src.ms-src-off{opacity:.4;text-decoration:line-through}
 .ms-job{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;transition:.12s}
@@ -623,6 +624,8 @@ a{color:var(--acc);text-decoration:none}
           <div id="panel-live">
             <div id="ms-source-row" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
               <span style="font-size:11px;color:var(--t2)">Sources:</span>
+              <span id="src-linkedin" class="ms-src ms-src-on" style="background:rgba(10,102,194,.15);color:#0a66c2;border:1px solid rgba(10,102,194,.3)" onclick="toggleSource('linkedin')">LinkedIn</span>
+              <span id="src-indeed" class="ms-src ms-src-on" style="background:rgba(37,87,167,.12);color:#2557a7;border:1px solid rgba(37,87,167,.3)" onclick="toggleSource('indeed')">Indeed</span>
               <span id="src-adzuna" class="ms-src ms-src-on" style="background:rgba(79,142,247,.12);color:#4f8ef7;border:1px solid rgba(79,142,247,.3)" onclick="toggleSource('adzuna')">Adzuna</span>
               <span id="src-himalayas" class="ms-src ms-src-on" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3)" onclick="toggleSource('himalayas')">Himalayas</span>
               <span id="src-arbeitnow" class="ms-src ms-src-on" style="background:rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.3)" onclick="toggleSource('arbeitnow')">Arbeitnow</span>
@@ -706,6 +709,12 @@ a{color:var(--acc);text-decoration:none}
             <h3>Account</h3>
             <p>Signed in as <span id="settings-email" style="color:var(--t1)">—</span></p>
             <button class="savebtn ghost" onclick="signOut()">Sign out</button>
+          </div>
+          <div class="ss">
+            <h3>⚡ Job Proxy (LinkedIn + Indeed)</h3>
+            <p style="font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.6">Connect your proxy server to enable LinkedIn and Indeed results in multi-source search.</p>
+            <div class="ff" style="margin-bottom:8px"><label>Proxy URL</label><input id="proxy-url-input" placeholder="https://rolestack-proxy.onrender.com"></div>
+            <button class="savebtn" onclick="saveProxySettings()">Save proxy URL</button>
           </div>
           <div class="ss" style="border-color:var(--acc)">
             <h3 style="color:var(--acc);font-size:14px;margin-bottom:8px">🤖 AI Engine & Credits</h3>
@@ -829,50 +838,83 @@ a{color:var(--acc);text-decoration:none}
     
       <!-- ── SPONSOR DIRECTORY VIEW ── -->
       <div class="view" id="view-sponsors">
-        <div style="padding:20px;overflow-y:auto;flex:1">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700">🏛 UK Sponsor Register</div>
-            <div style="font-size:11px;color:var(--t3)" id="sponsor-last-sync">Loading...</div>
-          </div>
-          <p style="font-size:11px;color:var(--t2);margin-bottom:16px">Live UK Home Office register of licensed Skilled Worker sponsors. Updated daily. <span id="sponsor-dir-total" style="color:var(--acc)"></span></p>
-          
-          <!-- Search bar -->
-          <div style="display:flex;gap:8px;margin-bottom:12px">
-            <input id="dir-q" placeholder="🔍 Search company name..." 
-              style="flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 14px;color:var(--t1);font-size:13px;outline:none;font-family:'DM Mono',monospace"
-              oninput="debouncedDirSearch(this.value)">
-            <input id="dir-city" placeholder="City..." 
-              style="width:130px;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 12px;color:var(--t1);font-size:13px;outline:none;font-family:'DM Mono',monospace"
-              oninput="debouncedDirSearch()">
-            <select id="dir-tier" onchange="runDirSearch()"
-              style="background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 12px;color:var(--t1);font-size:12px;outline:none;font-family:'DM Mono',monospace">
-              <option value="">All tiers</option>
-              <option value="Skilled Worker">Skilled Worker</option>
-              <option value="Global Business Mobility">Global Business Mobility</option>
-              <option value="Temporary Worker">Temporary Worker</option>
-            </select>
+        <div style="display:flex;height:100%;overflow:hidden">
+
+          <!-- LEFT FILTER SIDEBAR -->
+          <div style="width:200px;flex-shrink:0;border-right:1px solid var(--bd);padding:14px 12px;overflow-y:auto;background:var(--s1)">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;margin-bottom:14px;color:var(--t1)">Filters</div>
+
+            <div style="margin-bottom:14px">
+              <div style="font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Sponsor Status</div>
+              <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:4px;padding:5px 9px;font-size:11px;color:#4ade80">● Active (Licensed)</div>
+            </div>
+
+            <div style="margin-bottom:14px">
+              <div style="font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Location</div>
+              <input id="dir-city" placeholder="Search location..." oninput="dirPage=0;debouncedDirSearch()"
+                style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:4px;padding:5px 8px;color:var(--t1);font-size:11px;outline:none;font-family:'DM Mono',monospace;margin-bottom:6px;box-sizing:border-box">
+              <div>
+                <div onclick="filterByCity('London')" id="city-row-London" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-London" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">London</span></div>
+                <div onclick="filterByCity('Manchester')" id="city-row-Manchester" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Manchester" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Manchester</span></div>
+                <div onclick="filterByCity('Birmingham')" id="city-row-Birmingham" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Birmingham" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Birmingham</span></div>
+                <div onclick="filterByCity('Edinburgh')" id="city-row-Edinburgh" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Edinburgh" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Edinburgh</span></div>
+                <div onclick="filterByCity('Bristol')" id="city-row-Bristol" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Bristol" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Bristol</span></div>
+                <div onclick="filterByCity('Leeds')" id="city-row-Leeds" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Leeds" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Leeds</span></div>
+                <div onclick="filterByCity('Glasgow')" id="city-row-Glasgow" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Glasgow" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Glasgow</span></div>
+                <div onclick="filterByCity('Cambridge')" id="city-row-Cambridge" style="display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:3px;cursor:pointer" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background=''"><div id="city-cb-Cambridge" style="width:12px;height:12px;border:1.5px solid var(--bd2);border-radius:2px;flex-shrink:0;transition:.15s"></div><span style="font-size:12px;color:var(--t2)">Cambridge</span></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:14px">
+              <div style="font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Main Tier</div>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--t2);margin-bottom:5px"><input type="checkbox" id="tier-worker" onchange="dirPage=0;runDirSearch(true)" style="accent-color:var(--acc)"> Worker (A rating)</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--t2);margin-bottom:5px"><input type="checkbox" id="tier-temp" onchange="dirPage=0;runDirSearch(true)" style="accent-color:var(--acc)"> Temporary Worker</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--t2)"><input type="checkbox" id="tier-gbm" onchange="dirPage=0;runDirSearch(true)" style="accent-color:var(--acc)"> Global Business</label>
+            </div>
+
+            <button onclick="clearSponsorFilters()" style="width:100%;padding:5px;background:none;border:1px solid var(--bd2);border-radius:4px;color:var(--t3);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">Clear filters</button>
           </div>
 
-          <!-- Results table -->
-          <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead>
-                <tr style="border-bottom:1px solid var(--bd)">
-                  <th style="padding:10px 14px;text-align:left;color:var(--t2);font-weight:500;font-size:11px">Organisation</th>
-                  <th style="padding:10px 14px;text-align:left;color:var(--t2);font-weight:500;font-size:11px">Town</th>
-                  <th style="padding:10px 14px;text-align:left;color:var(--t2);font-weight:500;font-size:11px">Route</th>
-                  <th style="padding:10px 14px;text-align:left;color:var(--t2);font-weight:500;font-size:11px">Status</th>
-                  <th style="padding:10px 14px;text-align:left;color:var(--t2);font-weight:500;font-size:11px">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="dir-results">
-                <tr><td colspan="5" style="padding:30px;text-align:center;color:var(--t3)">Type to search sponsors...</td></tr>
-              </tbody>
-            </table>
+          <!-- MAIN CONTENT -->
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-shrink:0">
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">🏛 UK Sponsor Register</div>
+                <div style="font-size:10px;color:var(--t3);margin-top:1px" id="sponsor-last-sync">Loading...</div>
+              </div>
+              <div style="flex:1"></div>
+              <span id="sponsor-dir-total" style="font-size:11px;color:var(--acc);font-weight:600"></span>
+            </div>
+            <div style="padding:10px 16px;border-bottom:1px solid var(--bd);flex-shrink:0">
+              <input id="dir-q" placeholder="Search sponsors by name..."
+                style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:6px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;font-family:'DM Mono',monospace;box-sizing:border-box"
+                oninput="dirPage=0;debouncedDirSearch()">
+            </div>
+            <div style="flex:1;overflow-y:auto">
+              <table style="width:100%;border-collapse:collapse">
+                <thead style="position:sticky;top:0;background:var(--s2);z-index:2">
+                  <tr>
+                    <th style="padding:9px 14px;text-align:left;color:var(--t3);font-weight:500;font-size:11px;border-bottom:1px solid var(--bd)">Organisation</th>
+                    <th style="padding:9px 14px;text-align:left;color:var(--t3);font-weight:500;font-size:11px;border-bottom:1px solid var(--bd);width:120px">Location</th>
+                    <th style="padding:9px 14px;text-align:left;color:var(--t3);font-weight:500;font-size:11px;border-bottom:1px solid var(--bd);width:150px">Tier</th>
+                    <th style="padding:9px 14px;text-align:left;color:var(--t3);font-weight:500;font-size:11px;border-bottom:1px solid var(--bd);width:80px">Status</th>
+                    <th style="padding:9px 14px;text-align:left;color:var(--t3);font-weight:500;font-size:11px;border-bottom:1px solid var(--bd);width:130px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="dir-results">
+                  <tr><td colspan="5" style="padding:40px;text-align:center;color:var(--t3)">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="padding:8px 16px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--s1)">
+              <span id="dir-page-info" style="font-size:11px;color:var(--t3);flex:1"></span>
+              <button id="dir-prev" onclick="dirChangePage(-1)" style="padding:4px 12px;background:none;border:1px solid var(--bd2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;display:none">← Prev</button>
+              <button id="dir-next" onclick="dirChangePage(1)" style="padding:4px 12px;background:none;border:1px solid var(--bd2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;display:none">Next →</button>
+            </div>
           </div>
-          <div id="dir-pagination" style="display:flex;gap:6px;margin-top:10px;align-items:center;font-size:11px;color:var(--t2)"></div>
         </div>
       </div>
+
 
     </div></div>
 <div class="overlay" id="add-modal">
@@ -990,6 +1032,7 @@ const UK_BOARDS=[
   {n:'CV-Library',i:'📋',d:'UK jobs board',u:'https://www.cv-library.co.uk/search-jobs?q={q}&loc={loc}'},
   {n:'Totaljobs',i:'🔎',d:'UK mainstream',u:'https://www.totaljobs.com/jobs/{slug}/in-{loc}'},
   {n:'CWJobs',i:'💻',d:'UK tech specialist',u:'https://www.cwjobs.co.uk/jobs/{slug}/in-{loc}'},
+  {n:'Scaling Europe',i:'🌍',d:'EU startup + VC-backed',u:'https://scalingeurope.co.uk/jobs?q={q}'},
   {n:'Hunt UK Visas',i:'🎯',d:'Visa sponsors only',u:'https://huntukvisasponsors.com/jobs?q={q}'},
   {n:'Tier2 Sponsors',i:'🛂',d:'Skilled Worker jobs',u:'https://tier2sponsors.com/jobs?search={q}'},
 ];
@@ -1125,6 +1168,7 @@ async function onLogin(user){
   checkOnboarding();
   await loadUserData();
   loadSponsorCount();
+  loadProxySettings();
   if(!hasAIConfigured()){
     const b=document.getElementById('ai-setup-banner');
     if(b) b.style.display='flex';
@@ -1765,7 +1809,6 @@ function switchSearchMkt(mkt,el){
     if(el2)el2.style.display=p===mkt?'block':'none';
   });
   if(mkt==='boards')renderBoards();
-  switchSearchMkt('live', document.getElementById('st-live-tab'));
 }
 
 function renderBoards(){
@@ -1784,7 +1827,7 @@ function doSearch(){ multiSearch(); }
 // MULTI-SOURCE JOB SEARCH
 // ══════════════════════════════════════════════════════
 let msResults = [];
-let msActiveSources = {adzuna:true, himalayas:true, arbeitnow:true, remotive:true, reed:true, rocketship:true, huntuk:true};
+let msActiveSources = {linkedin:true, indeed:true, adzuna:true, himalayas:true, arbeitnow:true, remotive:true, reed:true, rocketship:true, huntuk:true};
 const REED_API_KEY = '54f0d82a-b064-464e-9903-bec9c63e07be';
 
 function toggleSource(src){
@@ -1808,6 +1851,7 @@ async function multiSearch(){
   }
   const q = document.getElementById('sq').value.trim() || 'Account Executive';
   const loc = document.getElementById('sq-loc').value || 'London';
+  const market = loc.toLowerCase() === 'dubai' ? 'dubai' : 'uk';
   const btn = document.getElementById('search-action-btn');
   btn.textContent = 'Searching...'; btn.disabled = true;
 
@@ -1820,138 +1864,64 @@ async function multiSearch(){
       <div class="ms-skel-line" style="width:90%"></div>
     </div>`).join('');
 
-  // Hit all sources simultaneously
-  const [adzunaRes, himalayasRes, arbeitnowRes, remotiveRes, reedRes, rocketRes, huntRes] = await Promise.allSettled([
-    msActiveSources.adzuna ? fetchAdzuna(q, loc) : Promise.resolve([]),
-    msActiveSources.himalayas ? fetchHimalayas(q, loc) : Promise.resolve([]),
-    msActiveSources.arbeitnow ? fetchArbeitnow(q, loc) : Promise.resolve([]),
-    msActiveSources.remotive ? fetchRemotive(q) : Promise.resolve([]),
-    msActiveSources.reed ? fetchReed(q, loc) : Promise.resolve([]),
-    msActiveSources.rocketship ? fetchRemoteRocketship(q) : Promise.resolve([]),
-    msActiveSources.huntuk ? fetchHuntUKVisas(q, loc) : Promise.resolve([]),
-  ]);
+  try {
+    // Get enabled sources from toggle chips
+    const sources = Object.entries(msActiveSources)
+      .filter(([,on]) => on).map(([src]) => src);
 
-  const all = [
-    ...(adzunaRes.status==='fulfilled' ? adzunaRes.value : []),
-    ...(himalayasRes.status==='fulfilled' ? himalayasRes.value : []),
-    ...(arbeitnowRes.status==='fulfilled' ? arbeitnowRes.value : []),
-    ...(remotiveRes.status==='fulfilled' ? remotiveRes.value : []),
-    ...(reedRes.status==='fulfilled' ? reedRes.value : []),
-    ...(rocketRes.status==='fulfilled' ? rocketRes.value : []),
-    ...(huntRes.status==='fulfilled' ? huntRes.value : []),
-  ];
+    // Call Edge Function — runs server-side, no CORS issues
+    const { data: { session } } = await sb.auth.getSession();
+    const headers = { 'Content-Type': 'application/json' };
+    if(session) headers['Authorization'] = `Bearer ${session.access_token}`;
 
-  // Deduplicate by title+company
-  const seen = new Set();
-  msResults = all.filter(j=>{
-    const key = (j.company+j.title).toLowerCase().replace(/[^a-z0-9]/g,'');
-    if(seen.has(key)) return false;
-    seen.add(key); return true;
-  });
+    const res = await fetch(
+      'https://swmxqjygsnxqtffwlahe.supabase.co/functions/v1/job-search',
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            q, loc, market, sources,
+            proxyUrl: localStorage.getItem('rs_proxy_url') || ''
+          })
+      }
+    );
 
-  // Async sponsor checks for UK roles
-  msResults.forEach((j,i)=>{
-    if(j.market==='uk' && sponsorCount>0){
-      checkSponsor(j.company).then(s=>{
-        msResults[i].sponsorStatus = s;
-        const el = document.getElementById('ms-sp-'+i);
-        if(el){
-          if(s==='YES') el.outerHTML=`<span class="ms-badge" style="background:rgba(34,197,94,.12);color:#4ade80">Sponsor</span>`;
-          else if(s==='NO') el.outerHTML=`<span class="ms-badge" style="background:rgba(239,69,69,.08);color:#f87171">Not listed</span>`;
-        }
-      });
-    }
-  });
+    if(!res.ok) throw new Error(`Search failed: ${res.status}`);
+    const { jobs, stats } = await res.json();
 
-  renderMultiResults();
+    msResults = jobs || [];
+
+    // Update source chips with counts
+    const chipMap = { adzuna:'src-adzuna', reed:'src-reed', himalayas:'src-himalayas',
+      arbeitnow:'src-arbeitnow', remotive:'src-remotive', rocketship:'src-rocketship', huntuk:'src-huntuk' };
+    Object.entries(stats || {}).forEach(([src, count]) => {
+      const el = document.getElementById(chipMap[src]);
+      if(el && count > 0) el.textContent = el.textContent.split(' ')[0] + ` (${count})`;
+    });
+
+    // Async sponsor checks for UK roles
+    msResults.forEach((j,i) => {
+      if(j.market === 'uk' && sponsorCount > 0){
+        checkSponsor(j.company).then(s => {
+          msResults[i].sponsorStatus = s;
+          renderMultiResults();
+        });
+      }
+    });
+
+    renderMultiResults();
+
+  } catch(e) {
+    grid.innerHTML = `<div style="padding:30px;text-align:center;color:var(--red)">
+      <div style="font-size:18px;margin-bottom:8px">⚠</div>
+      <div style="font-size:13px;margin-bottom:4px">Search failed</div>
+      <div style="font-size:11px;color:var(--t3)">${e.message}</div>
+    </div>`;
+  }
+
   btn.textContent='Search all sources ↗'; btn.disabled=false;
 }
 
-function renderMultiResults(){
-  const grid = document.getElementById('ms-results');
-  const sort = document.getElementById('ms-sort')?.value || 'date';
-  const filterSponsor = document.getElementById('ms-filter-sponsor')?.value || 'all';
-
-  let filtered = msResults.filter(j=>{
-    if(!msActiveSources[j.source]) return false;
-    if(filterSponsor==='confirmed' && j.sponsorStatus!=='YES') return false;
-    return true;
-  });
-
-  if(sort==='salary') filtered.sort((a,b)=>(b.salaryNum||0)-(a.salaryNum||0));
-  else if(sort==='sponsor') filtered.sort((a,b)=>(b.sponsorStatus==='YES'?1:0)-(a.sponsorStatus==='YES'?1:0));
-
-  const cnt = document.getElementById('ms-count');
-  if(cnt) cnt.textContent = `${filtered.length} results · deduped`;
-
-  if(!filtered.length){
-    grid.innerHTML=`<div style="text-align:center;padding:40px;color:var(--t3)">
-      <div style="font-size:24px;margin-bottom:10px">No results</div>
-      <div style="font-size:12px">Try a broader search term or different location</div>
-    </div>`;
-    return;
-  }
-
-  const SRC_COLORS = {
-    adzuna:'rgba(79,142,247,.12);color:#4f8ef7;border:1px solid rgba(79,142,247,.3)',
-    himalayas:'rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3)',
-    arbeitnow:'rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.3)',
-    remotive:'rgba(168,85,247,.12);color:#a855f7;border:1px solid rgba(168,85,247,.3)',
-    greenhouse:'rgba(100,100,100,.1);color:var(--t2);border:1px solid var(--bd2)',
-    lever:'rgba(100,100,100,.1);color:var(--t2);border:1px solid var(--bd2)',
-    reed:'rgba(239,69,69,.12);color:#ef4545;border:1px solid rgba(239,69,69,.3)',
-    rocketship:'rgba(20,184,166,.12);color:#14b8a6;border:1px solid rgba(20,184,166,.3)',
-    huntuk:'rgba(168,224,99,.12);color:var(--acc);border:1px solid rgba(168,224,99,.3)',
-  };
-  const SRC_BORDER = {
-    adzuna:'#185FA5', himalayas:'#3B6D11', arbeitnow:'#BA7517',
-    remotive:'#533AB7', greenhouse:'var(--bd)', lever:'var(--bd)', reed:'#A32D2D'
-  };
-
-  grid.innerHTML = filtered.map((j,i)=>{
-    const srcColor = SRC_COLORS[j.source] || SRC_COLORS.greenhouse;
-    const borderColor = SRC_BORDER[j.source] || 'var(--bd)';
-    const isDubai = j.market==='dubai';
-    const sponsorHTML = isDubai
-      ? `<span class="ms-badge" style="background:rgba(20,184,166,.12);color:#14b8a6">Right to work</span>`
-      : `<span class="ms-badge" style="background:rgba(100,100,100,.1);color:var(--t3)" id="ms-sp-${i}">Checking...</span>`;
-
-    return `<div class="ms-job" style="border-left:3px solid ${borderColor}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
-        <div>
-          <div class="ms-job-co">${sanitize(j.company)}</div>
-          <div class="ms-job-role">${sanitize(j.title)}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:12px">
-          <span class="ms-badge" style="background:${srcColor}">${j.source}</span>
-          ${sponsorHTML}
-        </div>
-      </div>
-      ${j.description ? `<div class="ms-job-desc">${sanitize(j.description)}</div>` : ''}
-      <div class="ms-job-actions">
-        ${j.salary ? `<span style="font-size:11px;color:var(--acc);font-weight:500">${sanitize(j.salary)}</span>` : ''}
-        ${j.location ? `<span style="font-size:11px;color:var(--t3)">· ${sanitize(j.location)}</span>` : ''}
-        <div style="flex:1"></div>
-        <button class="disc-add" onclick="addMultiJob(${i})">+ Add to pipeline</button>
-        ${j.url ? `<a class="disc-link" href="${j.url}" target="_blank">Apply ↗</a>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function addMultiJob(i){
-  const j = msResults.find((_,idx)=>idx===i) || msResults[i];
-  if(!j) return;
-  const btn = event.target;
-  btn.textContent='✓ Added'; btn.classList.add('added'); btn.disabled=true;
-  // Pre-fill add modal
-  document.getElementById('a-co').value = j.company;
-  document.getElementById('a-role').value = j.title;
-  document.getElementById('a-market').value = j.market || 'uk';
-  document.getElementById('a-status').value = 'applied';
-  document.getElementById('a-notes').value = j.url || '';
-  addRole();
-}
 
 async function fetchAdzuna(q, loc){
   if(!adzunaAppId || !adzunaAppKey) return [];
@@ -1977,6 +1947,9 @@ async function fetchAdzuna(q, loc){
 }
 
 async function fetchHimalayas(q, loc){
+  // Himalayas blocks CORS from browser — use Job Boards tab instead
+  return [];
+
   try{
     const url=`https://himalayas.app/jobs/api?q=${encodeURIComponent(q)}&limit=10`;
     const res = await fetch(url);
@@ -2050,6 +2023,9 @@ async function fetchRemotive(q){
 
 
 async function fetchRemoteRocketship(q) {
+  // Rocketship blocks CORS from browser — use Job Boards tab instead
+  return [];
+
   // Remote Rocketship - visa-sponsored remote roles
   // Uses their public job feed
   try {
@@ -2073,6 +2049,9 @@ async function fetchRemoteRocketship(q) {
 
 
 async function fetchHuntUKVisas(q, loc) {
+  // Hunt UK has no public job API — use Job Boards tab instead
+  return [];
+
   // Hunt UK Visa Sponsors - jobs from visa-licensed companies only
   try {
     const res = await fetch(`https://huntukvisasponsors.com/api/jobs?q=${encodeURIComponent(q)}&location=${encodeURIComponent(loc)}&limit=10`, {
@@ -2096,6 +2075,9 @@ async function fetchHuntUKVisas(q, loc) {
 }
 
 async function fetchReed(q, loc){
+  // Reed blocks CORS from browser — use Job Boards tab instead
+  return [];
+
   try{
     const encoded = btoa(REED_API_KEY + ':');
     const url = `https://www.reed.co.uk/api/1.0/search?keywords=${encodeURIComponent(q)}&locationName=${encodeURIComponent(loc)}&resultsToTake=10`;
@@ -2528,8 +2510,8 @@ function showView(v){
   const nb=document.getElementById('n-'+v);if(nb)nb.classList.add('on');
   document.getElementById('cmd-res').style.display='none';
   if(v==='interviews'){renderInterviews();populateCompanySelect();}
-  if(v==='search'){renderBoards();switchSearchMkt('live',document.getElementById('st-live-tab'));}
-  if(v==='sponsors'){loadSponsorCount();setTimeout(()=>{runDirSearch(true);},300);}
+  if(v==='search'){renderBoards();}
+  if(v==='sponsors'){dirPage=0;dirCityFilter='';loadSponsorCount();setTimeout(()=>runDirSearch(true),300);}
 }
 function filterBoard(f,el){
   boardFilter=f;
@@ -3118,63 +3100,114 @@ function speakText(text) {
 // SPONSOR DIRECTORY SEARCH
 // ══════════════════════════════════════════════════════
 const debouncedDirSearch = debounce(function() { runDirSearch(); }, 400);
-let dirPage = 0;
 
 async function runDirSearch(showAll) {
-  const q = (document.getElementById('dir-q')?.value || '').trim();
-  const city = (document.getElementById('dir-city')?.value || '').trim();
-  const tier = document.getElementById('dir-tier')?.value || '';
+  const q = (document.getElementById('dir-q')?.value||'').trim();
+  const cityInp = (document.getElementById('dir-city')?.value||'').trim();
+  const city = cityInp || dirCityFilter;
   const tbody = document.getElementById('dir-results');
-  if (!tbody) return;
-
-  if (!q && !city && !tier && !showAll) {
-    tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--t3)">Type a company name to filter 100,000+ UK sponsors...</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--t2)">Searching register...</td></tr>';
-
-  try {
-    let query = sb.from('uk_sponsors')
-      .select('organisation_name, town, type_and_rating, route')
-      .limit(100);
-
-    if (q) query = query.ilike('organisation_name', '%' + q + '%');
-    if (city) query = query.ilike('town', '%' + city + '%');
-    if (tier) query = query.ilike('route', '%' + tier + '%');
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    const total = document.getElementById('sponsor-dir-total');
-    if (total) total.textContent = data.length >= 50 ? '50+ matches (refine search)' : data.length + ' matches';
-
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--t3)">No sponsors found. Try a different search.</td></tr>';
+  if(!tbody) return;
+  const tiers=[];
+  if(document.getElementById('tier-worker')?.checked) tiers.push('A rating');
+  if(document.getElementById('tier-temp')?.checked) tiers.push('Temporary');
+  if(document.getElementById('tier-gbm')?.checked) tiers.push('Global Business');
+  tbody.innerHTML='<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--t2)">Searching...</td></tr>';
+  try{
+    const PAGE=50;
+    let query=sb.from('uk_sponsors')
+      .select('organisation_name,town,type_and_rating,route',{count:'exact'})
+      .order('organisation_name')
+      .range(dirPage*PAGE,(dirPage+1)*PAGE-1);
+    if(q) query=query.ilike('organisation_name','%'+q+'%');
+    if(city) query=query.ilike('town','%'+city+'%');
+    if(tiers.length===1) query=query.ilike('type_and_rating','%'+tiers[0]+'%');
+    const {data,error,count}=await query;
+    if(error) throw error;
+    const total=document.getElementById('sponsor-dir-total');
+    if(total) total.textContent=(q||city||tiers.length)?(data?.length||0)+' matches':(count||sponsorCount||0).toLocaleString()+' sponsors';
+    const totalPages=count?Math.ceil(count/PAGE):1;
+    const pi=document.getElementById('dir-page-info');
+    if(pi) pi.textContent='Page '+(dirPage+1)+' of '+totalPages+' · '+(count||sponsorCount||0).toLocaleString()+' total';
+    const prev=document.getElementById('dir-prev');
+    const next=document.getElementById('dir-next');
+    if(prev) prev.style.display=dirPage>0?'inline-block':'none';
+    if(next) next.style.display=count>(dirPage+1)*PAGE?'inline-block':'none';
+    if(!data||!data.length){
+      tbody.innerHTML='<tr><td colspan="5" style="padding:40px;text-align:center;color:var(--t3)">No sponsors found. Try different filters.</td></tr>';
       return;
     }
+    tbody.innerHTML='';
+    data.forEach(s=>{
+      const tr=document.createElement('tr');
+      tr.className='dir-row';
+      tr.style.borderBottom='1px solid var(--bd)';
+      const name=s.organisation_name||'';
+      const town=s.town||'';
+      const typeRating=s.type_and_rating||'';
+      const isA=typeRating.toLowerCase().includes('a rating');
+      const isTemp=typeRating.toLowerCase().includes('temporary');
+      const badge=isA
+        ?'<span style="background:rgba(79,142,247,.15);color:#4f8ef7;border:1px solid rgba(79,142,247,.3);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600">A rating</span>'
+        :isTemp
+        ?'<span style="background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600">Temporary</span>'
+        :'<span style="background:rgba(168,224,99,.1);color:var(--acc);border:1px solid rgba(168,224,99,.2);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600">'+(s.route||'Worker')+'</span>';
+      const enc=encodeURIComponent(name);
+      tr.innerHTML=
+        '<td style="padding:10px 14px;font-weight:600;font-size:13px">'+sanitize(name)+'</td>'+
+        '<td style="padding:10px 14px;color:var(--t2);font-size:12px">'+(town||'—')+'</td>'+
+        '<td style="padding:10px 14px">'+badge+'</td>'+
+        '<td style="padding:10px 14px"><span style="color:var(--green);font-size:11px">● Active</span></td>'+
+        '<td style="padding:10px 14px"><div style="display:flex;gap:5px;align-items:center">'+
+          '<a href="https://www.linkedin.com/search/results/companies/?keywords='+enc+'" target="_blank" style="font-size:13px" title="LinkedIn">💼</a>'+
+          '<a href="https://www.google.com/search?q='+enc+'+jobs" target="_blank" style="font-size:13px" title="Jobs">🔍</a>'+
+          '<button class="cpbtn" style="padding:2px 7px;font-size:10px" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="addSponsorToSearch(this.dataset.name)">Search</button>'+
+        '</div></td>';
+      tbody.appendChild(tr);
+    });
 
-    tbody.innerHTML = data.map(s => {
-      const name = s.organisation_name || '';
-      const town = s.town || '';
-      const route = s.route || 'Skilled Worker';
-      const encoded = encodeURIComponent(name);
-      return '<tr style="border-bottom:1px solid var(--bd)">' +
-        '<td style="padding:10px 14px;font-weight:600;font-family:Syne,sans-serif">' + name + '</td>' +
-        '<td style="padding:10px 14px;color:var(--t2)">' + town + '</td>' +
-        '<td style="padding:10px 14px"><span style="background:rgba(79,142,247,.12);color:#4f8ef7;border-radius:4px;padding:2px 8px;font-size:10px">' + route + '</span></td>' +
-        '<td style="padding:10px 14px"><span style="color:var(--green)">● Active</span></td>' +
-        '<td style="padding:10px 14px;display:flex;gap:6px">' +
-          '<a href="https://www.linkedin.com/search/results/companies/?keywords=' + encoded + '" target="_blank" style="color:var(--t2);font-size:13px" title="LinkedIn">💼</a>' +
-          '<a href="https://www.google.com/search?q=' + encoded + '+jobs" target="_blank" style="color:var(--t2);font-size:13px" title="Jobs">🔍</a>' +
-          '<button class="cpbtn" onclick="navigator.clipboard.writeText(' + "'" + name.replace(/'/g,"\'") + "').then(()=>showToast('Copied!'))" + '" style="padding:2px 8px;font-size:10px">Copy</button>' +
-        '</td>' +
-      '</tr>';
-    }).join('');
-  } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:20px;text-align:center">Error: ' + e.message + '</td></tr>';
+  }catch(e){
+    tbody.innerHTML='<tr><td colspan="5" style="color:var(--red);padding:20px;text-align:center">Error: '+e.message+'</td></tr>';
   }
 }
+
+let dirPage=0;
+let dirCityFilter='';
+
+function dirChangePage(delta){
+  dirPage=Math.max(0,dirPage+delta);
+  runDirSearch(true);
+}
+
+function filterByCity(city){
+  dirCityFilter=dirCityFilter===city?'':city;
+  dirPage=0;
+  document.querySelectorAll('[id^="city-cb-"]').forEach(el=>{el.style.background='var(--s2)';el.style.borderColor='var(--bd2)';});
+  const inp=document.getElementById('dir-city');
+  if(dirCityFilter){
+    const cb=document.getElementById('city-cb-'+city);
+    if(cb){cb.style.background='var(--acc)';cb.style.borderColor='var(--acc)';}
+    if(inp) inp.value=city;
+  } else {
+    if(inp) inp.value='';
+  }
+  runDirSearch(true);
+}
+
+function clearSponsorFilters(){
+  dirCityFilter='';dirPage=0;
+  const q=document.getElementById('dir-q');if(q)q.value='';
+  const city=document.getElementById('dir-city');if(city)city.value='';
+  ['tier-worker','tier-temp','tier-gbm'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  document.querySelectorAll('[id^="city-cb-"]').forEach(el=>{el.style.background='var(--s2)';el.style.borderColor='var(--bd2)';});
+  runDirSearch(true);
+}
+
+function addSponsorToSearch(name){
+  showView('search');
+  const sq=document.getElementById('sq');
+  if(sq){sq.value=name;multiSearch();}
+}
+
 
 
 // ══════════════════════════════════════════════════════
@@ -3500,6 +3533,24 @@ async function saveStructuredProfile() {
 
   closeModal('edit-profile-modal');
   showToast('✅ Profile saved');
+}
+
+
+function saveProxySettings() {
+  const url = document.getElementById('proxy-url-input')?.value?.trim();
+  if(url) {
+    localStorage.setItem('rs_proxy_url', url);
+    showToast('Proxy URL saved — LinkedIn and Indeed now active');
+  }
+}
+
+function loadProxySettings() {
+  const saved = localStorage.getItem('rs_proxy_url') || 'https://rolestack-jg9e.onrender.com';
+  const inp = document.getElementById('proxy-url-input');
+  if(inp) inp.value = saved;
+  if(!localStorage.getItem('rs_proxy_url')) {
+    localStorage.setItem('rs_proxy_url', 'https://rolestack-jg9e.onrender.com');
+  }
 }
 
 
