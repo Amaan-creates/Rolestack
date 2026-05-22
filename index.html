@@ -3272,6 +3272,100 @@ function checkOnboarding() {
   }
 }
 
+function renderMultiResults(){
+  const grid = document.getElementById('ms-results');
+  const sort = document.getElementById('ms-sort')?.value || 'date';
+  const filterSponsor = document.getElementById('ms-filter-sponsor')?.value || 'all';
+
+  let filtered = msResults.filter(j => {
+    if(!msActiveSources[j.source]) return false;
+    if(filterSponsor === 'confirmed' && j.sponsorStatus !== 'YES') return false;
+    return true;
+  });
+
+  if(sort === 'salary') filtered.sort((a,b) => (b.salaryNum || 0) - (a.salaryNum || 0));
+  else if(sort === 'sponsor') filtered.sort((a,b) => (b.sponsorStatus === 'YES' ? 1 : 0) - (a.sponsorStatus === 'YES' ? 1 : 0));
+
+  const cnt = document.getElementById('ms-count');
+  if(cnt) cnt.textContent = `${filtered.length} results · deduped`;
+
+  if(!filtered.length){
+    grid.innerHTML = `<div style="text-align:center;padding:40px;color:var(--t3)">
+      <div style="font-size:24px;margin-bottom:10px">No results</div>
+      <div style="font-size:12px">Try a broader search term or different location</div>
+    </div>`;
+    return;
+  }
+
+  const SRC_COLORS = {
+    linkedin: 'rgba(10,102,194,.15);color:#0a66c2;border:1px solid rgba(10,102,194,.3)',
+    indeed: 'rgba(37,87,167,.12);color:#2557a7;border:1px solid rgba(37,87,167,.3)',
+    adzuna: 'rgba(79,142,247,.12);color:#4f8ef7;border:1px solid rgba(79,142,247,.3)',
+    himalayas: 'rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3)',
+    arbeitnow: 'rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.3)',
+    remotive: 'rgba(168,85,247,.12);color:#a855f7;border:1px solid rgba(168,85,247,.3)',
+    reed: 'rgba(239,69,69,.12);color:#ef4545;border:1px solid rgba(239,69,69,.3)',
+    rocketship: 'rgba(20,184,166,.12);color:#14b8a6;border:1px solid rgba(20,184,166,.3)',
+    huntuk: 'rgba(168,224,99,.12);color:var(--acc);border:1px solid rgba(168,224,99,.3)',
+  };
+  const SRC_BORDER = {
+    linkedin: '#0a66c2', indeed: '#2557a7', adzuna: '#185FA5',
+    himalayas: '#3B6D11', arbeitnow: '#BA7517', remotive: '#533AB7',
+    reed: '#A32D2D', rocketship: '#0D7A6E', huntuk: '#4a7a1a',
+  };
+
+  grid.innerHTML = filtered.map((j,i) => {
+    const srcColor = SRC_COLORS[j.source] || SRC_COLORS.adzuna;
+    const borderColor = SRC_BORDER[j.source] || 'var(--bd)';
+    const isDubai = j.market === 'dubai';
+    const sponsorHTML = isDubai
+      ? `<span class="ms-badge" style="background:rgba(20,184,166,.12);color:#14b8a6">Right to work</span>`
+      : j.sponsorStatus === 'YES'
+      ? `<span class="ms-badge" style="background:rgba(34,197,94,.12);color:#4ade80">Sponsor</span>`
+      : j.sponsorStatus === 'NO'
+      ? `<span class="ms-badge" style="background:rgba(239,69,69,.08);color:#f87171">Not listed</span>`
+      : `<span class="ms-badge" id="ms-sp-${i}" style="background:rgba(100,100,100,.1);color:var(--t3)">Checking...</span>`;
+
+    return `<div class="ms-job" style="border-left:3px solid ${borderColor}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+        <div>
+          <div class="ms-job-co">${sanitize(j.company)}</div>
+          <div class="ms-job-role">${sanitize(j.title)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:12px">
+          <span class="ms-badge" style="background:${srcColor}">${j.source}</span>
+          ${sponsorHTML}
+        </div>
+      </div>
+      ${j.description ? `<div class="ms-job-desc">${sanitize(j.description)}</div>` : ''}
+      <div class="ms-job-actions">
+        ${j.salary ? `<span style="font-size:11px;color:var(--acc);font-weight:500">${sanitize(j.salary)}</span>` : ''}
+        ${j.location ? `<span style="font-size:11px;color:var(--t3)">· ${sanitize(j.location)}</span>` : ''}
+        <div style="flex:1"></div>
+        <button class="disc-add" onclick="addMultiJob(${i})">+ Add to pipeline</button>
+        ${j.url ? `<a class="disc-link" href="${j.url}" target="_blank">Apply ↗</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addMultiJob(i){
+  const j = msResults[i];
+  if(!j) return;
+  if(event && event.target){
+    event.target.textContent = '✓ Added';
+    event.target.classList.add('added');
+    event.target.disabled = true;
+  }
+  document.getElementById('a-co').value = j.company;
+  document.getElementById('a-role').value = j.title;
+  document.getElementById('a-market').value = j.market || 'uk';
+  document.getElementById('a-status').value = 'applied';
+  document.getElementById('a-notes').value = j.url || '';
+  addRole();
+}
+
+
 // ══════════════════════════════════════════════════════
 // SPONSOR-ONLY FILTER
 // ══════════════════════════════════════════════════════
